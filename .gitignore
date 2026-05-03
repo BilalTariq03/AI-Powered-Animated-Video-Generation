@@ -1,8 +1,34 @@
 __pycache__/
 *.pyc
+*.pyo
 
+# Virtual environment
+venv/
+.env
+
+# Vector DB
 .chroma_db/
 
-venv/
+# Generated audio (large binary outputs)
+data/outputs/audio/bgm/
+data/outputs/audio/dialogue/
 
-.env
+# Generated images (AI-generated PNGs)
+data/outputs/images/
+
+# Generated video (all MP4/AVI outputs)
+data/outputs/video/
+
+# Wav2Lip — cloned by setup_wav2lip.py, not committed
+# Model checkpoints inside are 400MB+
+agents/video_agent/Wav2Lip/
+
+# Model weight files anywhere
+*.pth
+*.pt
+
+# Wav2Lip temp intermediates (in case Wav2Lip dir is kept)
+temp/result.avi
+temp/temp.wav
+temp/faulty_frame.jpg
+

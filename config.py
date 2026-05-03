@@ -30,6 +30,12 @@ DIALOGUE_DIR    = f"{AUDIO_DIR}/dialogue"
 BGM_DIR         = f"{AUDIO_DIR}/bgm"
 TIMING_MANIFEST = f"{AUDIO_DIR}/timing_manifest.json"
 
+# Phase 3 video outputs
+VIDEO_DIR    = f"{OUTPUT_DIR}/video"
+SCENES_DIR   = f"{VIDEO_DIR}/scenes"
+LIPSYNC_DIR  = f"{VIDEO_DIR}/lipsync"
+FINAL_VIDEO  = f"{VIDEO_DIR}/final_video.mp4"
+
 # ── ChromaDB ──────────────────────────────────────────────────────────────────
 CHROMA_PATH = ".chroma_db"
 COLLECTION  = "writers_room_memory"
