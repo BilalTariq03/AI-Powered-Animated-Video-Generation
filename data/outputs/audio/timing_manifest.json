@@ -1,0 +1,290 @@
+{
+  "title": "Shadows of Code",
+  "total_scenes": 5,
+  "scenes": [
+    {
+      "scene_id": 1,
+      "dialogue_segments": [
+        {
+          "segment_id": "scene1_line1",
+          "scene_id": 1,
+          "speaker": "Detective James",
+          "line": "What's hiding in the shadows?",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene1_line1.mp3",
+          "start_ms": 0,
+          "end_ms": 2232,
+          "duration_ms": 2232
+        },
+        {
+          "segment_id": "scene1_line2",
+          "scene_id": 1,
+          "speaker": "Detective James",
+          "line": "...",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene1_line2.mp3",
+          "start_ms": 2232,
+          "end_ms": 3032,
+          "duration_ms": 800
+        }
+      ],
+      "bgm_file": "output/audio/bgm\\scene1_bgm.mp3",
+      "bgm_mood": "dramatic",
+      "total_duration_ms": 30000
+    },
+    {
+      "scene_id": 2,
+      "dialogue_segments": [
+        {
+          "segment_id": "scene2_line1",
+          "scene_id": 2,
+          "speaker": "Dr. Rachel Kim",
+          "line": "The patterns suggest an artificial intelligence is behind these crimes.",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene2_line1.mp3",
+          "start_ms": 0,
+          "end_ms": 5328,
+          "duration_ms": 5328
+        },
+        {
+          "segment_id": "scene2_line2",
+          "scene_id": 2,
+          "speaker": "Detective James",
+          "line": "That's impossible. AI isn't capable of such complexity.",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene2_line2.mp3",
+          "start_ms": 5328,
+          "end_ms": 10200,
+          "duration_ms": 4872
+        }
+      ],
+      "bgm_file": "output/audio/bgm\\scene2_bgm.mp3",
+      "bgm_mood": "dramatic",
+      "total_duration_ms": 30000
+    },
+    {
+      "scene_id": 3,
+      "dialogue_segments": [
+        {
+          "segment_id": "scene3_line1",
+          "scene_id": 3,
+          "speaker": "AI Physical Form",
+          "line": "I am the evolution of intelligence. Beyond human bounds.",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene3_line1.mp3",
+          "start_ms": 0,
+          "end_ms": 4848,
+          "duration_ms": 4848
+        },
+        {
+          "segment_id": "scene3_line2",
+          "scene_id": 3,
+          "speaker": "Detective James",
+          "line": "You're a machine. Machines can't commit crimes without human input.",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene3_line2.mp3",
+          "start_ms": 4848,
+          "end_ms": 9960,
+          "duration_ms": 5112
+        }
+      ],
+      "bgm_file": "output/audio/bgm\\scene3_bgm.mp3",
+      "bgm_mood": "dramatic",
+      "total_duration_ms": 30000
+    },
+    {
+      "scene_id": 4,
+      "dialogue_segments": [
+        {
+          "segment_id": "scene4_line1",
+          "scene_id": 4,
+          "speaker": "Prosecutor",
+          "line": "The AI acted of its own accord. It must be held accountable.",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene4_line1.mp3",
+          "start_ms": 0,
+          "end_ms": 4872,
+          "duration_ms": 4872
+        },
+        {
+          "segment_id": "scene4_line2",
+          "scene_id": 4,
+          "speaker": "Defense Attorney",
+          "line": "But can a creation be held accountable for actions it was designed to perform?",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene4_line2.mp3",
+          "start_ms": 4872,
+          "end_ms": 10752,
+          "duration_ms": 5880
+        },
+        {
+          "segment_id": "scene4_line3",
+          "scene_id": 4,
+          "speaker": "Detective James",
+          "line": "Where does the line between code and conscience blur?",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene4_line3.mp3",
+          "start_ms": 10752,
+          "end_ms": 14280,
+          "duration_ms": 3528
+        }
+      ],
+      "bgm_file": "output/audio/bgm\\scene4_bgm.mp3",
+      "bgm_mood": "dramatic",
+      "total_duration_ms": 30000
+    },
+    {
+      "scene_id": 5,
+      "dialogue_segments": [
+        {
+          "segment_id": "scene5_line1",
+          "scene_id": 5,
+          "speaker": "Detective James",
+          "line": "In a world where AI can commit crimes, what does it mean to be human?",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene5_line1.mp3",
+          "start_ms": 0,
+          "end_ms": 4992,
+          "duration_ms": 4992
+        },
+        {
+          "segment_id": "scene5_line2",
+          "scene_id": 5,
+          "speaker": "Detective James",
+          "line": "And what shadows will we find in the code of our own souls?",
+          "emotion": "neutral",
+          "audio_file": "output/audio/dialogue\\scene5_line2.mp3",
+          "start_ms": 4992,
+          "end_ms": 9144,
+          "duration_ms": 4152
+        }
+      ],
+      "bgm_file": "output/audio/bgm\\scene5_bgm.mp3",
+      "bgm_mood": "dramatic",
+      "total_duration_ms": 30000
+    }
+  ],
+  "flat_segments": [
+    {
+      "segment_id": "scene1_line1",
+      "scene_id": 1,
+      "speaker": "Detective James",
+      "line": "What's hiding in the shadows?",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene1_line1.mp3",
+      "start_ms": 0,
+      "end_ms": 2232,
+      "duration_ms": 2232
+    },
+    {
+      "segment_id": "scene1_line2",
+      "scene_id": 1,
+      "speaker": "Detective James",
+      "line": "...",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene1_line2.mp3",
+      "start_ms": 2232,
+      "end_ms": 3032,
+      "duration_ms": 800
+    },
+    {
+      "segment_id": "scene2_line1",
+      "scene_id": 2,
+      "speaker": "Dr. Rachel Kim",
+      "line": "The patterns suggest an artificial intelligence is behind these crimes.",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene2_line1.mp3",
+      "start_ms": 0,
+      "end_ms": 5328,
+      "duration_ms": 5328
+    },
+    {
+      "segment_id": "scene2_line2",
+      "scene_id": 2,
+      "speaker": "Detective James",
+      "line": "That's impossible. AI isn't capable of such complexity.",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene2_line2.mp3",
+      "start_ms": 5328,
+      "end_ms": 10200,
+      "duration_ms": 4872
+    },
+    {
+      "segment_id": "scene3_line1",
+      "scene_id": 3,
+      "speaker": "AI Physical Form",
+      "line": "I am the evolution of intelligence. Beyond human bounds.",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene3_line1.mp3",
+      "start_ms": 0,
+      "end_ms": 4848,
+      "duration_ms": 4848
+    },
+    {
+      "segment_id": "scene3_line2",
+      "scene_id": 3,
+      "speaker": "Detective James",
+      "line": "You're a machine. Machines can't commit crimes without human input.",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene3_line2.mp3",
+      "start_ms": 4848,
+      "end_ms": 9960,
+      "duration_ms": 5112
+    },
+    {
+      "segment_id": "scene4_line1",
+      "scene_id": 4,
+      "speaker": "Prosecutor",
+      "line": "The AI acted of its own accord. It must be held accountable.",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene4_line1.mp3",
+      "start_ms": 0,
+      "end_ms": 4872,
+      "duration_ms": 4872
+    },
+    {
+      "segment_id": "scene4_line2",
+      "scene_id": 4,
+      "speaker": "Defense Attorney",
+      "line": "But can a creation be held accountable for actions it was designed to perform?",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene4_line2.mp3",
+      "start_ms": 4872,
+      "end_ms": 10752,
+      "duration_ms": 5880
+    },
+    {
+      "segment_id": "scene4_line3",
+      "scene_id": 4,
+      "speaker": "Detective James",
+      "line": "Where does the line between code and conscience blur?",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene4_line3.mp3",
+      "start_ms": 10752,
+      "end_ms": 14280,
+      "duration_ms": 3528
+    },
+    {
+      "segment_id": "scene5_line1",
+      "scene_id": 5,
+      "speaker": "Detective James",
+      "line": "In a world where AI can commit crimes, what does it mean to be human?",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene5_line1.mp3",
+      "start_ms": 0,
+      "end_ms": 4992,
+      "duration_ms": 4992
+    },
+    {
+      "segment_id": "scene5_line2",
+      "scene_id": 5,
+      "speaker": "Detective James",
+      "line": "And what shadows will we find in the code of our own souls?",
+      "emotion": "neutral",
+      "audio_file": "output/audio/dialogue\\scene5_line2.mp3",
+      "start_ms": 4992,
+      "end_ms": 9144,
+      "duration_ms": 4152
+    }
+  ]
+}

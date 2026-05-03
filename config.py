@@ -3,26 +3,33 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ── API Keys ──────────────────────────────────────────────
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-HF_API_KEY   = os.getenv("HF_API_KEY", "")      # HuggingFace (free image gen)
+# ── API Keys ──────────────────────────────────────────────────────────────────
+GROQ_API_KEY       = os.getenv("GROQ_API_KEY", "")
+HF_API_KEY         = os.getenv("HF_API_KEY", "")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 
-# ── Model Settings ────────────────────────────────────────
-GROQ_MODEL = "llama-3.3-70b-versatile"          # Best free Groq model
+# ── Model Settings ────────────────────────────────────────────────────────────
+GROQ_MODEL     = "llama-3.3-70b-versatile"
 HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
 
-# ── Paths ─────────────────────────────────────────────────
-OUTPUT_DIR  = "output"
-IMAGES_DIR  = f"{OUTPUT_DIR}/images"
+# ── Directory Layout ──────────────────────────────────────────────────────────
+OUTPUT_DIR = "data/outputs"
+IMAGES_DIR = f"{OUTPUT_DIR}/images"
 
-# Phase 1 core outputs
+# Phase 1 outputs
 MANIFEST    = f"{OUTPUT_DIR}/scene_manifest.json"
 CHAR_DB     = f"{OUTPUT_DIR}/character_db.json"
 
-# Phase handoff files (consumed by downstream phases)
-PHASE2_HANDOFF = f"{OUTPUT_DIR}/phase2_audio_handoff.json"   # consumed by Phase 2
-PHASE3_HANDOFF = f"{OUTPUT_DIR}/phase3_video_handoff.json"   # consumed by Phase 3
+# Phase handoff files
+PHASE2_HANDOFF = f"{OUTPUT_DIR}/phase2_audio_handoff.json"
+PHASE3_HANDOFF = f"{OUTPUT_DIR}/phase3_video_handoff.json"
 
-# ── ChromaDB ──────────────────────────────────────────────
+# Phase 2 audio outputs
+AUDIO_DIR       = f"{OUTPUT_DIR}/audio"
+DIALOGUE_DIR    = f"{AUDIO_DIR}/dialogue"
+BGM_DIR         = f"{AUDIO_DIR}/bgm"
+TIMING_MANIFEST = f"{AUDIO_DIR}/timing_manifest.json"
+
+# ── ChromaDB ──────────────────────────────────────────────────────────────────
 CHROMA_PATH = ".chroma_db"
 COLLECTION  = "writers_room_memory"
