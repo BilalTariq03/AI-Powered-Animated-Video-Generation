@@ -77,11 +77,16 @@ class ScriptwriterAgent(BaseAgent):
         print(f"[{self.name}] Interpreted: genre={story_meta.get('genre','?')}, tone={story_meta.get('tone','?')}")
 
         print(f"[{self.name}] [Reasoning 2/5] Decomposing into scene outline...")
+        # Assign a distinct mood to each scene position so BGM varies across the story
+        mood_arc = ["mysterious", "tense", "dramatic", "tense", "melancholic"]
         outline_prompt = (
             f"Story prompt: {prompt}\nGenre: {story_meta.get('genre','')}, "
             f"Tone: {story_meta.get('tone','')}\nThemes: {story_meta.get('themes','')}\n\n"
-            "Return ONLY a JSON array of 5 scene outlines, each with: "
-            '"scene_id", "location", "time_of_day", "mood", "tone", "duration_seconds", "purpose".'
+            "Return ONLY a JSON array of exactly 5 scene outlines. "
+            "Each object must have: "
+            '"scene_id", "location", "time_of_day", "mood", "tone", "duration_seconds", "purpose". '
+            f"You MUST assign these moods in order: {mood_arc}. "
+            "Do not repeat or reorder them."
         )
         scene_outline = self.parse_json(
             self.chat("You are a screenplay story architect.", outline_prompt, temperature=0.6)
@@ -194,8 +199,11 @@ class ScriptwriterAgent(BaseAgent):
             tod = scene.get("time_of_day", "").upper()
             scene["time_of_day"] = tod if tod in valid_times else "DAY"
 
+            # Preserve outline-assigned mood; only fall back if truly missing/invalid
+            scene_idx = scenes.index(scene)
+            mood_arc  = ["mysterious", "tense", "dramatic", "tense", "melancholic"]
             if scene.get("mood") not in valid_moods:
-                scene["mood"] = "dramatic"
+                scene["mood"] = mood_arc[scene_idx % len(mood_arc)]
             if scene.get("tone") not in valid_tones:
                 scene["tone"] = "neutral"
 

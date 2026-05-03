@@ -88,7 +88,19 @@ class AudioGenerationAgent:
             })
         return entries
 
+    # Fallback arc applied when Phase 1 assigns the same mood to every scene
+    _MOOD_ARC = ["mysterious", "tense", "dramatic", "melancholic", "hopeful",
+                 "tense", "dramatic", "romantic"]
+
     def _generate_bgm(self, music_moods: list) -> list:
+        # If all scenes share one mood (common when script is regenerated with old Phase 1)
+        # auto-assign a varied arc so BGM is distinct per scene.
+        all_moods = [mm.get("mood", "dramatic") for mm in music_moods]
+        if len(set(all_moods)) == 1:
+            print(f"[{self.name}] All scenes share mood '{all_moods[0]}' - applying mood arc for variety.")
+            for i, mm in enumerate(music_moods):
+                mm["mood"] = self._MOOD_ARC[i % len(self._MOOD_ARC)]
+
         entries = []
         for mm in music_moods:
             scene_id = mm["scene_id"]

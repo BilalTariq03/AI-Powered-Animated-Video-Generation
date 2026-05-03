@@ -2,29 +2,47 @@
 shared/utils/vector_store.py
 ─────────────────────────────
 Persistent memory layer using ChromaDB.
-Shared singleton used by all phases.
+Falls back to a no-op stub if chromadb is not installed so that
+Phase 2 / Phase 3 can run without the full dependency set.
 """
 
 import json
 import uuid
 from typing import Any, Dict, List, Optional
 
-import chromadb
-from chromadb.config import Settings
-
 from config import CHROMA_PATH, COLLECTION
+
+try:
+    import chromadb
+    from chromadb.config import Settings
+    _CHROMA_AVAILABLE = True
+except ImportError:
+    _CHROMA_AVAILABLE = False
+
+
+class _StubCollection:
+    """No-op ChromaDB collection used when chromadb is not installed."""
+    def get(self, **_):       return {"ids": [], "documents": []}
+    def add(self, **_):       pass
+    def update(self, **_):    pass
+    def query(self, **_):     return {"documents": [[]], "metadatas": [[]]}
+    def count(self):          return 0
 
 
 class VectorMemory:
     def __init__(self):
-        self.client = chromadb.PersistentClient(
-            path=CHROMA_PATH,
-            settings=Settings(anonymized_telemetry=False)
-        )
-        self.collection = self.client.get_or_create_collection(
-            name=COLLECTION,
-            metadata={"hnsw:space": "cosine"}
-        )
+        if _CHROMA_AVAILABLE:
+            self.client = chromadb.PersistentClient(
+                path=CHROMA_PATH,
+                settings=Settings(anonymized_telemetry=False)
+            )
+            self.collection = self.client.get_or_create_collection(
+                name=COLLECTION,
+                metadata={"hnsw:space": "cosine"}
+            )
+        else:
+            self.client     = None
+            self.collection = _StubCollection()
 
     def store(self, key: str, data: Any, metadata: Optional[Dict] = None) -> str:
         doc_id  = str(uuid.uuid4())
