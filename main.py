@@ -19,32 +19,138 @@ import sys
 # ── Bootstrap: register all MCP tools before agents start ────────────────────
 import tools  # noqa: F401  — side-effect: registers all tools into mcp registry
 
-from config import OUTPUT_DIR, IMAGES_DIR, MANIFEST, CHAR_DB
+from config import (
+    OUTPUT_DIR, IMAGES_DIR,
+    MANIFEST, CHAR_DB,
+    PHASE2_HANDOFF, PHASE3_HANDOFF
+)
 from workflow.graph import workflow, WritersRoomState
 
 
+def build_phase2_handoff(script: dict, characters: list) -> dict:
+    """
+    Build phase2_audio_handoff.json consumed by Phase 2 (Audio Generation).
+    Contains: voice configs per character + per-scene audio segments to synthesize.
+    """
+    # Voice config per character (for TTS)
+    voice_configs = []
+    for char in characters:
+        vp = char.get("voice_profile", {})
+        voice_configs.append({
+            "character_name": char["name"],
+            "voice_style":    vp.get("voice_style", "neutral"),
+            "speaking_speed": vp.get("speaking_speed", "normal"),
+            "pitch":          vp.get("pitch", "medium"),
+            "tts_description": vp.get("tts_description", ""),
+            "emotion_range":  vp.get("emotion_range", ["neutral"])
+        })
+
+    # Audio segments to synthesize (one per dialogue line)
+    segments = []
+    for scene in script.get("scenes", []):
+        scene_id = scene["scene_id"]
+        mood     = scene.get("mood", "neutral")
+        for i, dlg in enumerate(scene.get("dialogue", [])):
+            segments.append({
+                "segment_id":  f"scene{scene_id}_line{i+1}",
+                "scene_id":    scene_id,
+                "speaker":     dlg["speaker"],
+                "line":        dlg["line"],
+                "emotion":     dlg.get("emotion", "neutral"),
+                "mood":        mood,
+            })
+
+    # Music mood per scene (for BGM selection)
+    music_moods = [
+        {
+            "scene_id":        scene["scene_id"],
+            "mood":            scene.get("mood", "neutral"),
+            "tone":            scene.get("tone", "neutral"),
+            "duration_seconds": scene.get("duration_seconds", 30)
+        }
+        for scene in script.get("scenes", [])
+    ]
+
+    return {
+        "title":         script.get("title", ""),
+        "voice_configs": voice_configs,
+        "segments":      segments,
+        "music_moods":   music_moods
+    }
+
+
+def build_phase3_handoff(script: dict, characters: list) -> dict:
+    """
+    Build phase3_video_handoff.json consumed by Phase 3 (Video Composition).
+    Contains: visual prompts per scene + camera/transition instructions.
+    """
+    scenes_visual = []
+    for scene in script.get("scenes", []):
+        scenes_visual.append({
+            "scene_id":               scene["scene_id"],
+            "location":               scene.get("location", ""),
+            "time_of_day":            scene.get("time_of_day", "DAY"),
+            "duration_seconds":       scene.get("duration_seconds", 30),
+            "mood":                   scene.get("mood", "neutral"),
+            "tone":                   scene.get("tone", "neutral"),
+            "image_generation_prompt": scene.get("image_generation_prompt", scene.get("visual_notes", "")),
+            "visual_notes":           scene.get("visual_notes", ""),
+            "characters_in_scene":    scene.get("characters", []),
+            "camera_style":           "cinematic wide shot",   # Phase 3 can override
+            "transition_to_next":     "fade"                   # Phase 3 can override
+        })
+
+    # Character visual references for Phase 3 image generation
+    character_visuals = [
+        {
+            "name":         char["name"],
+            "image_prompt": char.get("image_prompt", ""),
+            "reference_style": char.get("reference_style", "cinematic realism"),
+            "scenes_appeared": char.get("scenes_appeared", [])
+        }
+        for char in characters
+    ]
+
+    return {
+        "title":             script.get("title", ""),
+        "genre":             script.get("genre", ""),
+        "scenes":            scenes_visual,
+        "character_visuals": character_visuals
+    }
+
+
 def save_outputs(state: WritersRoomState):
-    """Write final JSON outputs to disk."""
+    """Write all JSON outputs to disk."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(IMAGES_DIR, exist_ok=True)
 
-    # scene_manifest.json
-    script = state.get("script", {})
+    script     = state.get("script", {})
+    characters = state.get("characters", [])
+
+    # ── scene_manifest.json ───────────────────────────────────────────────────
     with open(MANIFEST, "w") as f:
         json.dump(script, f, indent=2)
     print(f"\n✅ Saved: {MANIFEST}")
 
-    # character_db.json
-    characters = state.get("characters", [])
-    char_db = {
-        "total": len(characters),
-        "characters": characters
-    }
+    # ── character_db.json ─────────────────────────────────────────────────────
+    char_db = {"total": len(characters), "characters": characters}
     with open(CHAR_DB, "w") as f:
         json.dump(char_db, f, indent=2)
     print(f"✅ Saved: {CHAR_DB}")
 
-    # images summary
+    # ── phase2_audio_handoff.json ─────────────────────────────────────────────
+    phase2 = build_phase2_handoff(script, characters)
+    with open(PHASE2_HANDOFF, "w") as f:
+        json.dump(phase2, f, indent=2)
+    print(f"✅ Saved: {PHASE2_HANDOFF}  ({len(phase2['segments'])} audio segments, {len(phase2['voice_configs'])} voice configs)")
+
+    # ── phase3_video_handoff.json ─────────────────────────────────────────────
+    phase3 = build_phase3_handoff(script, characters)
+    with open(PHASE3_HANDOFF, "w") as f:
+        json.dump(phase3, f, indent=2)
+    print(f"✅ Saved: {PHASE3_HANDOFF}  ({len(phase3['scenes'])} scenes, {len(phase3['character_visuals'])} characters)")
+
+    # ── Images summary ────────────────────────────────────────────────────────
     images = state.get("images", [])
     if images:
         print(f"✅ Images: {len(images)} saved in {IMAGES_DIR}/")
@@ -126,7 +232,6 @@ def get_user_input() -> WritersRoomState:
 def main():
     print_banner()
 
-    # Check API key
     from config import GROQ_API_KEY
     if not GROQ_API_KEY:
         print("❌ ERROR: GROQ_API_KEY not set.")
@@ -134,16 +239,13 @@ def main():
         print("   Get your free key at: https://console.groq.com")
         sys.exit(1)
 
-    # Get initial state from user
     initial_state = get_user_input()
 
     print(f"\n🚀 Starting LangGraph workflow in '{initial_state['input_mode']}' mode...")
     print("=" * 60)
 
-    # ── Run LangGraph workflow ─────────────────────────────────────────────────
     final_state = workflow.invoke(initial_state)
 
-    # ── Save outputs ──────────────────────────────────────────────────────────
     print("\n" + "=" * 60)
     if final_state.get("status") == "complete":
         print("🎉 PIPELINE COMPLETE!")
@@ -157,7 +259,6 @@ def main():
             print(f"   • {e}")
     else:
         print(f"⚠ Pipeline ended with status: {final_state.get('status')}")
-        # Save whatever we have
         if final_state.get("script"):
             save_outputs(final_state)
 
