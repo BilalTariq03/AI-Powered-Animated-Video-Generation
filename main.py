@@ -1,23 +1,16 @@
 """
-main.py — The Writer's Room: Autonomous Story & Image Generation
-═══════════════════════════════════════════════════════════════════
-CS-4015 Agentic AI — Course Project Phase 1
-NUCES
+main.py
 
 Run:
     python main.py
-
-Environment variables needed (.env file):
-    GROQ_API_KEY=your_groq_key_here
-    HF_API_KEY=your_huggingface_key_here   (optional, for real images)
 """
 
+import glob
 import json
 import os
 import sys
 
-# ── Bootstrap: register all MCP tools before agents start ────────────────────
-import tools  # noqa: F401  — side-effect: registers all tools into mcp registry
+import tools  # noqa: F401
 
 from config import (
     OUTPUT_DIR, IMAGES_DIR,
@@ -27,52 +20,50 @@ from config import (
 from workflow.graph import workflow, WritersRoomState
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Handoff builders
+# ─────────────────────────────────────────────────────────────────────────────
+
 def build_phase2_handoff(script: dict, characters: list) -> dict:
-    """
-    Build phase2_audio_handoff.json consumed by Phase 2 (Audio Generation).
-    Contains: voice configs per character + per-scene audio segments to synthesize.
-    """
-    # Voice config per character (for TTS)
+    """Build phase2_audio_handoff.json consumed by Phase 2 (Audio Generation)."""
     voice_configs = []
     for char in characters:
         vp = char.get("voice_profile", {})
         voice_configs.append({
-            "character_name": char["name"],
-            "voice_style":    vp.get("voice_style", "neutral"),
-            "speaking_speed": vp.get("speaking_speed", "normal"),
-            "pitch":          vp.get("pitch", "medium"),
+            "character_name":  char["name"],
+            "voice_style":     vp.get("voice_style", "neutral"),
+            "speaking_speed":  vp.get("speaking_speed", "normal"),
+            "pitch":           vp.get("pitch", "medium"),
             "tts_description": vp.get("tts_description", ""),
-            "emotion_range":  vp.get("emotion_range", ["neutral"])
+            "emotion_range":   vp.get("emotion_range", ["neutral"])
         })
 
-    # Audio segments to synthesize (one per dialogue line)
     segments = []
     for scene in script.get("scenes", []):
         scene_id = scene["scene_id"]
         mood     = scene.get("mood", "neutral")
         for i, dlg in enumerate(scene.get("dialogue", [])):
             segments.append({
-                "segment_id":  f"scene{scene_id}_line{i+1}",
-                "scene_id":    scene_id,
-                "speaker":     dlg["speaker"],
-                "line":        dlg["line"],
-                "emotion":     dlg.get("emotion", "neutral"),
-                "mood":        mood,
+                "segment_id": f"scene{scene_id}_line{i+1}",
+                "scene_id":   scene_id,
+                "speaker":    dlg["speaker"],
+                "line":       dlg["line"],
+                "emotion":    dlg.get("emotion", "neutral"),
+                "mood":       mood,
             })
 
-    # Music mood per scene (for BGM selection)
     music_moods = [
         {
-            "scene_id":        scene["scene_id"],
-            "mood":            scene.get("mood", "neutral"),
-            "tone":            scene.get("tone", "neutral"),
-            "duration_seconds": scene.get("duration_seconds", 30)
+            "scene_id":         s["scene_id"],
+            "mood":             s.get("mood", "neutral"),
+            "tone":             s.get("tone", "neutral"),
+            "duration_seconds": s.get("duration_seconds", 30)
         }
-        for scene in script.get("scenes", [])
+        for s in script.get("scenes", [])
     ]
 
     return {
-        "title":         script.get("title", ""),
+        "title":         script.get("story", {}).get("title", ""),
         "voice_configs": voice_configs,
         "segments":      segments,
         "music_moods":   music_moods
@@ -80,31 +71,27 @@ def build_phase2_handoff(script: dict, characters: list) -> dict:
 
 
 def build_phase3_handoff(script: dict, characters: list) -> dict:
-    """
-    Build phase3_video_handoff.json consumed by Phase 3 (Video Composition).
-    Contains: visual prompts per scene + camera/transition instructions.
-    """
+    """Build phase3_video_handoff.json consumed by Phase 3 (Video Composition)."""
     scenes_visual = []
     for scene in script.get("scenes", []):
         scenes_visual.append({
-            "scene_id":               scene["scene_id"],
-            "location":               scene.get("location", ""),
-            "time_of_day":            scene.get("time_of_day", "DAY"),
-            "duration_seconds":       scene.get("duration_seconds", 30),
-            "mood":                   scene.get("mood", "neutral"),
-            "tone":                   scene.get("tone", "neutral"),
+            "scene_id":                scene["scene_id"],
+            "location":                scene.get("location", ""),
+            "time_of_day":             scene.get("time_of_day", "DAY"),
+            "duration_seconds":        scene.get("duration_seconds", 30),
+            "mood":                    scene.get("mood", "neutral"),
+            "tone":                    scene.get("tone", "neutral"),
             "image_generation_prompt": scene.get("image_generation_prompt", scene.get("visual_notes", "")),
-            "visual_notes":           scene.get("visual_notes", ""),
-            "characters_in_scene":    scene.get("characters", []),
-            "camera_style":           "cinematic wide shot",   # Phase 3 can override
-            "transition_to_next":     "fade"                   # Phase 3 can override
+            "visual_notes":            scene.get("visual_notes", ""),
+            "characters_in_scene":     scene.get("characters", []),
+            "camera_style":            "cinematic wide shot",
+            "transition_to_next":      "fade"
         })
 
-    # Character visual references for Phase 3 image generation
     character_visuals = [
         {
-            "name":         char["name"],
-            "image_prompt": char.get("image_prompt", ""),
+            "name":            char["name"],
+            "image_prompt":    char.get("image_prompt", ""),
             "reference_style": char.get("reference_style", "cinematic realism"),
             "scenes_appeared": char.get("scenes_appeared", [])
         }
@@ -112,27 +99,35 @@ def build_phase3_handoff(script: dict, characters: list) -> dict:
     ]
 
     return {
-        "title":             script.get("title", ""),
-        "genre":             script.get("genre", ""),
+        "title":             script.get("story", {}).get("title", ""),
+        "genre":             script.get("story", {}).get("genre", ""),
         "scenes":            scenes_visual,
         "character_visuals": character_visuals
     }
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Save outputs
+# ─────────────────────────────────────────────────────────────────────────────
+
 def save_outputs(state: WritersRoomState):
-    """Write all JSON outputs to disk."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(IMAGES_DIR, exist_ok=True)
 
     script     = state.get("script", {})
     characters = state.get("characters", [])
 
-    # ── scene_manifest.json ───────────────────────────────────────────────────
+    # ── scene_manifest.json — unified { story, scenes[], characters[] } ───────
+    unified = {
+        "story":      script.get("story", {}),
+        "scenes":     script.get("scenes", []),
+        "characters": characters
+    }
     with open(MANIFEST, "w") as f:
-        json.dump(script, f, indent=2)
-    print(f"\n✅ Saved: {MANIFEST}")
+        json.dump(unified, f, indent=2)
+    print(f"\n✅ Saved: {MANIFEST}  (unified PhaseOneOutput)")
 
-    # ── character_db.json ─────────────────────────────────────────────────────
+    # ── character_db.json — standalone character store ────────────────────────
     char_db = {"total": len(characters), "characters": characters}
     with open(CHAR_DB, "w") as f:
         json.dump(char_db, f, indent=2)
@@ -142,13 +137,15 @@ def save_outputs(state: WritersRoomState):
     phase2 = build_phase2_handoff(script, characters)
     with open(PHASE2_HANDOFF, "w") as f:
         json.dump(phase2, f, indent=2)
-    print(f"✅ Saved: {PHASE2_HANDOFF}  ({len(phase2['segments'])} audio segments, {len(phase2['voice_configs'])} voice configs)")
+    print(f"✅ Saved: {PHASE2_HANDOFF}  "
+          f"({len(phase2['segments'])} audio segments, {len(phase2['voice_configs'])} voice configs)")
 
     # ── phase3_video_handoff.json ─────────────────────────────────────────────
     phase3 = build_phase3_handoff(script, characters)
     with open(PHASE3_HANDOFF, "w") as f:
         json.dump(phase3, f, indent=2)
-    print(f"✅ Saved: {PHASE3_HANDOFF}  ({len(phase3['scenes'])} scenes, {len(phase3['character_visuals'])} characters)")
+    print(f"✅ Saved: {PHASE3_HANDOFF}  "
+          f"({len(phase3['scenes'])} scenes, {len(phase3['character_visuals'])} characters)")
 
     # ── Images summary ────────────────────────────────────────────────────────
     images = state.get("images", [])
@@ -157,6 +154,10 @@ def save_outputs(state: WritersRoomState):
         for img in images:
             print(f"   • {img['character']} → {img.get('path', 'N/A')}")
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Entry point
+# ─────────────────────────────────────────────────────────────────────────────
 
 def print_banner():
     print("""
@@ -168,7 +169,6 @@ def print_banner():
 
 
 def get_user_input() -> WritersRoomState:
-    """Collect input from user and build initial state."""
     print("Select mode:")
     print("  1. Auto — Generate script from a prompt (recommended)")
     print("  2. Manual — Upload your own script\n")
@@ -188,20 +188,11 @@ def get_user_input() -> WritersRoomState:
             print(f"Using default prompt: {prompt}")
 
         return WritersRoomState(
-            input_mode="auto",
-            user_prompt=prompt,
-            raw_script="",
-            script={},
-            validated=False,
-            validation_errors=[],
-            hitl_approved=False,
-            characters=[],
-            images=[],
-            status="init",
-            error=None,
-            iteration=0
+            input_mode="auto", user_prompt=prompt, raw_script="",
+            script={}, validated=False, validation_errors=[],
+            hitl_approved=False, characters=[], images=[],
+            status="init", error=None, iteration=0
         )
-
     else:
         print("\n📂 Manual Mode: Paste your script below.")
         print("   (Type END on a new line when done)\n")
@@ -211,21 +202,12 @@ def get_user_input() -> WritersRoomState:
             if line.strip().upper() == "END":
                 break
             lines.append(line)
-        raw_script = "\n".join(lines)
 
         return WritersRoomState(
-            input_mode="manual",
-            user_prompt="",
-            raw_script=raw_script,
-            script={},
-            validated=False,
-            validation_errors=[],
-            hitl_approved=False,
-            characters=[],
-            images=[],
-            status="init",
-            error=None,
-            iteration=0
+            input_mode="manual", user_prompt="", raw_script="\n".join(lines),
+            script={}, validated=False, validation_errors=[],
+            hitl_approved=False, characters=[], images=[],
+            status="init", error=None, iteration=0
         )
 
 
@@ -236,11 +218,12 @@ def main():
     if not GROQ_API_KEY:
         print("❌ ERROR: GROQ_API_KEY not set.")
         print("   Create a .env file with: GROQ_API_KEY=your_key_here")
-        print("   Get your free key at: https://console.groq.com")
         sys.exit(1)
 
-    initial_state = get_user_input()
+    for f in glob.glob(os.path.join(IMAGES_DIR, "*.png")):
+        os.remove(f)
 
+    initial_state = get_user_input()
     print(f"\n🚀 Starting LangGraph workflow in '{initial_state['input_mode']}' mode...")
     print("=" * 60)
 
@@ -253,9 +236,7 @@ def main():
     elif final_state.get("error"):
         print(f"❌ Pipeline failed: {final_state['error']}")
     elif final_state.get("status") == "validation_failed":
-        errors = final_state.get("validation_errors", [])
-        print(f"❌ Script validation failed:")
-        for e in errors:
+        for e in final_state.get("validation_errors", []):
             print(f"   • {e}")
     else:
         print(f"⚠ Pipeline ended with status: {final_state.get('status')}")
