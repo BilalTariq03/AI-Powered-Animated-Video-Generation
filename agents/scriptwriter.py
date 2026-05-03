@@ -26,16 +26,21 @@ The JSON must follow this exact schema:
       "scene_id": 1,
       "location": "Setting description",
       "time_of_day": "DAY | NIGHT | DAWN | DUSK",
+      "duration_seconds": 30,
+      "mood": "tense | mysterious | hopeful | dramatic | comedic | romantic | melancholic",
+      "tone": "dark | light | neutral | suspenseful | uplifting",
       "characters": ["CharacterName1", "CharacterName2"],
       "action": "Description of what happens in this scene.",
       "dialogue": [
         {
           "speaker": "CharacterName",
           "line": "What the character says.",
+          "emotion": "neutral | angry | sad | excited | fearful | surprised | disgusted | happy",
           "visual_cue": "Camera/lighting direction e.g. Close-up, warm light"
         }
       ],
-      "visual_notes": "Overall visual direction for this scene."
+      "visual_notes": "Overall visual direction for this scene.",
+      "image_generation_prompt": "Detailed Stable Diffusion prompt for this scene's background/setting image."
     }
   ]
 }
@@ -43,6 +48,11 @@ The JSON must follow this exact schema:
 Rules:
 - Minimum 4 scenes, maximum 8 scenes.
 - Each scene must have at least 2 dialogue lines.
+- duration_seconds must be realistic: 20-60 seconds per scene.
+- mood must be ONE of: tense, mysterious, hopeful, dramatic, comedic, romantic, melancholic.
+- tone must be ONE of: dark, light, neutral, suspenseful, uplifting.
+- emotion on each dialogue line must be ONE of: neutral, angry, sad, excited, fearful, surprised, disgusted, happy.
+- image_generation_prompt must be 30+ words, describe the scene background/setting only (no characters).
 - Keep character names consistent across scenes.
 - Include vivid visual_cue and visual_notes for the image synthesizer.
 - Output ONLY the JSON. No extra text or markdown.
@@ -76,7 +86,8 @@ class ScriptwriterAgent(BaseAgent):
             f"Genre: {story_meta.get('genre','')}, Tone: {story_meta.get('tone','')}\n"
             f"Themes: {story_meta.get('themes','')}\n\n"
             "Return ONLY a JSON array of 5 scene outlines, each with: "
-            "\"scene_id\", \"location\", \"time_of_day\", \"purpose\" (what this scene achieves narratively)."
+            "\"scene_id\", \"location\", \"time_of_day\", \"mood\", \"tone\", \"duration_seconds\", "
+            "\"purpose\" (what this scene achieves narratively)."
         )
         outline_raw = self.chat("You are a screenplay story architect.", outline_prompt, temperature=0.6)
         scene_outline = self.parse_json(outline_raw) or []
@@ -114,15 +125,52 @@ class ScriptwriterAgent(BaseAgent):
         if not script:
             return {**state, "status": "error", "error": "Scriptwriter failed to produce valid JSON."}
 
-        # Step 4: ATTACH VISUAL CONTEXT — enrich each scene with visual notes
-        print(f"[{self.name}] [Reasoning 4/4] Attaching visual context to scenes...")
+        # Step 4: ENRICH — fill missing fields and attach visual context
+        print(f"[{self.name}] [Reasoning 4/4] Enriching scenes with missing fields...")
+        valid_moods = {"tense", "mysterious", "hopeful", "dramatic", "comedic", "romantic", "melancholic"}
+        valid_tones = {"dark", "light", "neutral", "suspenseful", "uplifting"}
+        valid_emotions = {"neutral", "angry", "sad", "excited", "fearful", "surprised", "disgusted", "happy"}
+
         for scene in script.get("scenes", []):
+            # Fill duration_seconds if missing
+            if not scene.get("duration_seconds"):
+                scene["duration_seconds"] = 30
+
+            # Fill mood if missing or invalid
+            if scene.get("mood") not in valid_moods:
+                mood_raw = self.chat(
+                    "You are a film director. Given a scene description, return ONLY one word "
+                    f"for the scene's mood from this list: {', '.join(valid_moods)}.",
+                    f"Scene action: {scene.get('action', '')}"
+                )
+                scene["mood"] = mood_raw.strip().lower() if mood_raw.strip().lower() in valid_moods else "neutral" if "neutral" in valid_moods else "dramatic"
+
+            # Fill tone if missing or invalid
+            if scene.get("tone") not in valid_tones:
+                scene["tone"] = "neutral"
+
+            # Fill image_generation_prompt if missing
+            if not scene.get("image_generation_prompt"):
+                vis = self.chat(
+                    "You are a Stable Diffusion prompt engineer. Given a scene setting, write a "
+                    "detailed image generation prompt for the background/environment only (no characters). "
+                    "Return ONLY the prompt text, 30+ words.",
+                    f"Scene location: {scene.get('location', '')}. Visual notes: {scene.get('visual_notes', '')}."
+                )
+                scene["image_generation_prompt"] = vis.strip()
+
+            # Fill visual_notes if missing
             if not scene.get("visual_notes"):
                 vis = self.chat(
                     "You are a cinematographer. Given a scene description, return ONLY a one-sentence visual direction.",
-                    f"Scene: {scene.get('action','')}"
+                    f"Scene: {scene.get('action', '')}"
                 )
                 scene["visual_notes"] = vis.strip()
+
+            # Fill emotion on each dialogue line if missing
+            for dlg in scene.get("dialogue", []):
+                if dlg.get("emotion") not in valid_emotions:
+                    dlg["emotion"] = "neutral"
 
         # ── Step 5: Commit to memory via MCP ─────────────────────────────────
         self.invoke_tool("commit_memory", {
