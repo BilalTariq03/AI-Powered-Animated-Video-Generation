@@ -3,8 +3,12 @@ agents/character_designer.py
 ─────────────────────────────
 Character Designer Agent
   Role: Extract and formalize character identities from the script.
-  Output: character_db.json with name, traits, appearance, style.
+  Output: character_db.json with name, traits, appearance, style, voice profile.
   MCP Tools: commit_memory, query_stock_footage
+
+CHANGES (Phase 1 → Phase 2 handoff fix):
+  - Added voice_profile block: voice_style, speaking_speed, pitch, emotion_range
+    (required by Phase 2 TTS — ElevenLabs / Coqui need these parameters)
 """
 
 from typing import Any, Dict, List
@@ -33,6 +37,13 @@ Schema:
       "clothing_style": "description of typical clothing",
       "distinguishing_features": "any unique features"
     },
+    "voice_profile": {
+      "voice_style": "deep | soft | raspy | high-pitched | neutral | authoritative | whispery",
+      "speaking_speed": "slow | normal | fast",
+      "pitch": "low | medium | high",
+      "emotion_range": ["neutral", "angry", "sad"],
+      "tts_description": "One sentence describing how this character sounds, e.g. 'A calm, authoritative male voice with a slight gravel quality.'"
+    },
     "reference_style": "Art style reference e.g. 'cinematic realism', 'anime', 'noir'",
     "image_prompt": "Detailed Stable Diffusion prompt for this character portrait",
     "scenes_appeared": [1, 2, 3]
@@ -41,6 +52,11 @@ Schema:
 
 Rules:
 - Include EVERY named character who has dialogue or action.
+- voice_style must be ONE of: deep, soft, raspy, high-pitched, neutral, authoritative, whispery.
+- speaking_speed must be ONE of: slow, normal, fast.
+- pitch must be ONE of: low, medium, high.
+- emotion_range must list the emotions this character expresses across the story (use: neutral, angry, sad, excited, fearful, surprised, disgusted, happy).
+- tts_description must be a single sentence describing the voice for a TTS system.
 - image_prompt must be detailed (40+ words), portrait-focused, photorealistic style.
 - Maintain identity CONSISTENCY — same character must look the same across all scenes.
 - Output ONLY the JSON array. No markdown, no extra text.
@@ -72,6 +88,31 @@ class CharacterDesignerAgent(BaseAgent):
         if not isinstance(characters, list):
             return {**state, "characters": [], "status": "error", "error": "Character extraction failed."}
 
+        # ── Reasoning 1b: Fill missing voice_profile fields ──────────────────
+        valid_voice_styles = {"deep", "soft", "raspy", "high-pitched", "neutral", "authoritative", "whispery"}
+        valid_speeds = {"slow", "normal", "fast"}
+        valid_pitches = {"low", "medium", "high"}
+
+        for char in characters:
+            vp = char.get("voice_profile")
+            if not isinstance(vp, dict):
+                char["voice_profile"] = {}
+                vp = char["voice_profile"]
+
+            if vp.get("voice_style") not in valid_voice_styles:
+                vp["voice_style"] = "neutral"
+            if vp.get("speaking_speed") not in valid_speeds:
+                vp["speaking_speed"] = "normal"
+            if vp.get("pitch") not in valid_pitches:
+                vp["pitch"] = "medium"
+            if not isinstance(vp.get("emotion_range"), list) or not vp["emotion_range"]:
+                vp["emotion_range"] = ["neutral"]
+            if not vp.get("tts_description"):
+                vp["tts_description"] = (
+                    f"A {vp['voice_style']} voice speaking at {vp['speaking_speed']} speed "
+                    f"with {vp['pitch']} pitch."
+                )
+
         print(f"[{self.name}] [Reasoning 2/3] Checking memory for existing visual references (MCP)...")
         # ── Reasoning 2: Query stock footage references via MCP ───────────────
         for char in characters:
@@ -99,8 +140,9 @@ class CharacterDesignerAgent(BaseAgent):
         lines = [f"TITLE: {script.get('title', '')}", f"GENRE: {script.get('genre', '')}", ""]
         for scene in script.get("scenes", []):
             lines.append(f"SCENE {scene['scene_id']}: {scene.get('location', '')} - {scene.get('time_of_day', '')}")
+            lines.append(f"MOOD: {scene.get('mood', '')} | TONE: {scene.get('tone', '')}")
             lines.append(f"ACTION: {scene.get('action', '')}")
             for dlg in scene.get("dialogue", []):
-                lines.append(f"{dlg['speaker']}: {dlg['line']}")
+                lines.append(f"{dlg['speaker']} [{dlg.get('emotion', 'neutral')}]: {dlg['line']}")
             lines.append("")
         return "\n".join(lines)
