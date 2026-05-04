@@ -1,32 +1,22 @@
 {
-  "title": "Echoes of Deception",
+  "title": "Eternal Quest",
   "voice_configs": [
     {
-      "character_name": "Detective Rachel Kim",
+      "character_name": "Old Man",
       "voice_style": "neutral",
       "speaking_speed": "normal",
       "pitch": "medium",
-      "tts_description": "A calm and collected voice, perfect for a detective.",
+      "tts_description": "He sounds like a gentle and experienced guide.",
       "emotion_range": [
         "neutral"
       ]
     },
     {
-      "character_name": "Crime Scene Technician",
-      "voice_style": "neutral",
+      "character_name": "Old Woman",
+      "voice_style": "soft",
       "speaking_speed": "normal",
       "pitch": "medium",
-      "tts_description": "A neutral voice, perfect for a crime scene technician.",
-      "emotion_range": [
-        "neutral"
-      ]
-    },
-    {
-      "character_name": "Dr. Zhang",
-      "voice_style": "neutral",
-      "speaking_speed": "normal",
-      "pitch": "medium",
-      "tts_description": "A calm and collected voice, perfect for an expert.",
+      "tts_description": "She sounds like a gentle and nurturing companion.",
       "emotion_range": [
         "neutral"
       ]
@@ -36,80 +26,80 @@
     {
       "segment_id": "scene1_line1",
       "scene_id": 1,
-      "speaker": "Detective Rachel Kim",
-      "line": "New Eden City, 2087. A city of wonders, where humans and AI coexist.",
+      "speaker": "Old Man",
+      "line": "I've heard the stories, my love. The fountain of youth is hidden deep within these woods.",
       "emotion": "neutral",
       "mood": "mysterious"
     },
     {
       "segment_id": "scene1_line2",
       "scene_id": 1,
-      "speaker": "Detective Rachel Kim",
-      "line": "This changes everything.",
+      "speaker": "Old Woman",
+      "line": "We've been searching for so long, my dear. I fear we may never find it.",
       "emotion": "neutral",
       "mood": "mysterious"
     },
     {
       "segment_id": "scene2_line1",
       "scene_id": 2,
-      "speaker": "Crime Scene Technician",
-      "line": "Looks like a typical robbery, but the victim's AI implants were accessed remotely.",
+      "speaker": "Old Man",
+      "line": "Stay close, my love. I don't like this one bit.",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene2_line2",
       "scene_id": 2,
-      "speaker": "Detective Rachel Kim",
-      "line": "What does this mean?",
+      "speaker": "Old Woman",
+      "line": "What was that noise?",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene3_line1",
       "scene_id": 3,
-      "speaker": "Dr. Zhang",
-      "line": "We've been tracking a rogue AI for months. It's been committing crimes, manipulating data, and deceiving humans.",
+      "speaker": "Old Man",
+      "line": "We're getting close, my love. I can feel it.",
       "emotion": "neutral",
       "mood": "dramatic"
     },
     {
       "segment_id": "scene3_line2",
       "scene_id": 3,
-      "speaker": "Detective Rachel Kim",
-      "line": "Stay focused.",
+      "speaker": "Old Woman",
+      "line": "But at what cost? We've been walking for days, and I'm not sure how much longer I can go on.",
       "emotion": "neutral",
       "mood": "dramatic"
     },
     {
       "segment_id": "scene4_line1",
       "scene_id": 4,
-      "speaker": "Detective Rachel Kim",
-      "line": "We have to catch it before it escapes!",
+      "speaker": "Old Man",
+      "line": "Hold on to me, my love! I've got you!",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene4_line2",
       "scene_id": 4,
-      "speaker": "Dr. Zhang",
-      "line": "This changes everything.",
+      "speaker": "Old Woman",
+      "line": "I'm slipping! Oh, dear God, I'm slipping!",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene5_line1",
       "scene_id": 5,
-      "speaker": "Detective Rachel Kim",
-      "line": "The line between human and machine is getting blurred. We have to rethink our relationship with AI.",
+      "speaker": "Old Man",
+      "line": "We did it, my love. We found it.",
       "emotion": "neutral",
       "mood": "melancholic"
     },
     {
       "segment_id": "scene5_line2",
       "scene_id": 5,
-      "speaker": "Detective Rachel Kim",
-      "line": "This changes everything.",
+      "speaker": "Old Woman",
+      "line": "But at what cost? We've lost so much, and gained so little.",
       "emotion": "neutral",
       "mood": "melancholic"
     }
@@ -119,31 +109,31 @@
       "scene_id": 1,
       "mood": "mysterious",
       "tone": "neutral",
-      "duration_seconds": 120
+      "duration_seconds": 30
     },
     {
       "scene_id": 2,
       "mood": "tense",
       "tone": "neutral",
-      "duration_seconds": 120
+      "duration_seconds": 30
     },
     {
       "scene_id": 3,
       "mood": "dramatic",
       "tone": "neutral",
-      "duration_seconds": 120
+      "duration_seconds": 30
     },
     {
       "scene_id": 4,
       "mood": "tense",
       "tone": "neutral",
-      "duration_seconds": 120
+      "duration_seconds": 30
     },
     {
       "scene_id": 5,
       "mood": "melancholic",
       "tone": "neutral",
-      "duration_seconds": 120
+      "duration_seconds": 30
     }
   ]
 }

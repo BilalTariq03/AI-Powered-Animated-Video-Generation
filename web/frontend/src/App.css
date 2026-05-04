@@ -240,3 +240,218 @@ body {
   transition: opacity 0.2s;
 }
 .btn-download:hover { opacity: 0.85; }
+
+/* ── Edit panel (Phase 5) ─────────────────────────────── */
+.edit-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.edit-panel-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.edit-hint { font-size: 0.78rem; color: var(--text-muted); }
+
+.edit-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.edit-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.edit-chip:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.edit-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.edit-input-row {
+  display: flex;
+  gap: 10px;
+}
+.edit-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 9px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.edit-input:focus { border-color: var(--accent); }
+.edit-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-edit-submit {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 72px;
+  padding: 9px 20px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-edit-submit:hover:not(:disabled) { background: #6aa3ff; }
+.btn-edit-submit:disabled, .btn-edit-submit.btn-disabled {
+  background: var(--accent-dim);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.edit-result {
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.edit-result-ok  { background: rgba(62,207,110,.08);  border: 1px solid rgba(62,207,110,.3); }
+.edit-result-err { background: rgba(224,82,82,.08);   border: 1px solid rgba(224,82,82,.3); }
+
+.edit-intent-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.edit-intent-badge {
+  background: var(--accent-dim);
+  border-radius: 4px;
+  color: #9ec5ff;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+}
+.edit-intent-scope {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.edit-rerun-badge {
+  background: rgba(240,160,51,.15);
+  border-radius: 4px;
+  color: var(--amber);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+}
+.edit-result-msg { color: var(--text); font-size: 0.88rem; }
+
+/* ── Version history (Phase 5) ────────────────────────── */
+.version-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.version-toggle {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 16px 20px;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+.version-toggle:hover { background: var(--surface2); }
+
+.version-count {
+  background: var(--accent-dim);
+  border-radius: 12px;
+  color: #9ec5ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+.version-chevron { margin-left: auto; font-size: 0.7rem; color: var(--text-muted); }
+
+.version-list {
+  border-top: 1px solid var(--border);
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.version-row {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.version-row:last-child { border-bottom: none; }
+.version-current { background: rgba(79,142,247,.06); }
+
+.version-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.version-tag {
+  background: var(--surface2);
+  border-radius: 4px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+.version-current-badge {
+  background: rgba(62,207,110,.12);
+  border-radius: 4px;
+  color: var(--green);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.version-time { color: var(--text-muted); font-size: 0.75rem; margin-left: auto; }
+.version-desc { color: var(--text); font-size: 0.83rem; line-height: 1.4; }
+
+.btn-revert {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--red);
+  border-radius: 5px;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 14px;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.btn-revert:hover:not(:disabled) { background: rgba(224,82,82,.12); }
+.btn-revert:disabled { opacity: 0.4; cursor: not-allowed; }

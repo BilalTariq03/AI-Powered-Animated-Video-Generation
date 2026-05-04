@@ -143,7 +143,26 @@ class VideoGenerationAgent:
         full = (f"{prompt}, cinematic background, no people, "
                 "no characters, highly detailed, wide angle")
 
-        # ── Primary: Pollinations.ai (free, no key needed) ────────────────
+        # ── Primary: HuggingFace (requires HF_API_KEY) ───────────────────
+        if HF_API_KEY:
+            import time
+            url     = f"https://router.huggingface.co/hf-inference/models/{HF_IMAGE_MODEL}"
+            headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+            try:
+                resp = requests.post(url, headers=headers, json={"inputs": full}, timeout=120)
+                if resp.status_code == 503:
+                    wait = resp.json().get("estimated_time", 30) if resp.content else 30
+                    time.sleep(min(wait, 60))
+                    resp = requests.post(url, headers=headers, json={"inputs": full}, timeout=120)
+                if resp.status_code == 200 and resp.content:
+                    img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+                    img.resize((VIDEO_W, VIDEO_H), Image.LANCZOS).save(save_path)
+                    return save_path
+                print(f"[VideoAgent] HF API returned {resp.status_code}: {resp.text[:200]}")
+            except Exception as e:
+                print(f"[VideoAgent] HF error: {e}")
+
+        # ── Fallback: Pollinations.ai (free, no key needed) ───────────────
         try:
             encoded = urllib.parse.quote(full)
             url     = (f"https://image.pollinations.ai/prompt/{encoded}"
@@ -157,27 +176,7 @@ class VideoGenerationAgent:
         except Exception as e:
             print(f"[VideoAgent] Pollinations error: {e}")
 
-        # ── Fallback: HuggingFace (requires HF_API_KEY) ───────────────────
-        if not HF_API_KEY:
-            return None
-        import time
-        url     = f"https://router.huggingface.co/hf-inference/models/{HF_IMAGE_MODEL}"
-        headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-        try:
-            resp = requests.post(url, headers=headers, json={"inputs": full}, timeout=120)
-            if resp.status_code == 503:
-                wait = resp.json().get("estimated_time", 30) if resp.content else 30
-                time.sleep(min(wait, 60))
-                resp = requests.post(url, headers=headers, json={"inputs": full}, timeout=120)
-            if resp.status_code != 200:
-                print(f"[VideoAgent] HF API returned {resp.status_code}: {resp.text[:200]}")
-                return None
-            img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-            img.resize((VIDEO_W, VIDEO_H), Image.LANCZOS).save(save_path)
-            return save_path
-        except Exception as e:
-            print(f"[VideoAgent] HF error: {e}")
-            return None
+        return None
 
     def _gradient_bg(self, mood: str, time_of_day: str, save_path: str) -> str:
         top, bot   = _MOOD_GRADIENT.get(mood, ((20, 20, 20), (60, 60, 60)))
@@ -200,7 +199,8 @@ class VideoGenerationAgent:
         chars_in    = scene.get("characters_in_scene", [])
         scene_label = scene.get("location", "")
 
-        timeline = self._build_timeline(segments)
+        timeline       = self._build_timeline(segments)
+        show_subtitles = _load_edit_settings().get("show_subtitles", True)
 
         # ── Load and oversized background for Ken Burns ───────────────────
         bg_arr = self._load_bg(bg_path, scene)
@@ -268,8 +268,8 @@ class VideoGenerationAgent:
                 ld.text((30, 28), scene_label, fill=(220, 220, 180, fade_a))
                 img = Image.alpha_composite(img, label_ov)
 
-            # 5 — Subtitle bar
-            if active:
+            # 5 — Subtitle bar (can be toggled via edit_settings.json)
+            if active and show_subtitles:
                 sub = Image.new("RGBA", (VIDEO_W, VIDEO_H), (0, 0, 0, 0))
                 sd  = ImageDraw.Draw(sub)
                 sd.rectangle([(0, VIDEO_H - 90), (VIDEO_W, VIDEO_H)],
@@ -473,3 +473,14 @@ class VideoGenerationAgent:
 def _load(path: str) -> dict:
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def _load_edit_settings() -> dict:
+    path = os.path.join("data", "outputs", "edit_settings.json")
+    if os.path.exists(path):
+        try:
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}

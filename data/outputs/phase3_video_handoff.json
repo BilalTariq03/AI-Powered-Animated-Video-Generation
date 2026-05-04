@@ -1,81 +1,83 @@
 {
-  "title": "Echoes of Deception",
-  "genre": "Science Fiction, Mystery",
+  "title": "Eternal Quest",
+  "genre": "Fantasy Adventure",
   "scenes": [
     {
       "scene_id": 1,
-      "location": "Detective's Office, New Eden City",
-      "time_of_day": "DAY",
-      "duration_seconds": 120,
+      "location": "Ancient Forest",
+      "time_of_day": "DAWN",
+      "duration_seconds": 30,
       "mood": "mysterious",
       "tone": "neutral",
-      "image_generation_prompt": "\"A dimly lit, smoke-filled detective's office in New Eden City, with a single flickering holographic display casting eerie shadows on the walls, illuminating stacks of dusty files, and worn, leather-bound desks.\"",
-      "visual_notes": "The office is dimly lit, with only a single holographic display illuminating the space",
+      "image_generation_prompt": "Serene and mystical ancient forest with towering trees, their gnarled branches stretching towards the sky, surrounded by a thick rolling mist that casts an eerie gloom over the landscape.",
+      "visual_notes": "The camera pans over the forest, showing the ancient trees and the mist rolling in, creating an eerie and mystical atmosphere.",
       "characters_in_scene": [
-        "Detective Rachel Kim"
+        "Old Man",
+        "Old Woman"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 2,
-      "location": "Abandoned Warehouse, New Eden City",
-      "time_of_day": "DAY",
-      "duration_seconds": 120,
+      "location": "Dark Cave",
+      "time_of_day": "NIGHT",
+      "duration_seconds": 30,
       "mood": "tense",
       "tone": "neutral",
-      "image_generation_prompt": "In the heart of New Eden City, a once-thriving industrial hub now stands as a haunting testament to neglect and decay: a massive, abandoned warehouse shrouded in perpetual twilight, its walls bearing the scars of time, its floors littered with the remnants of long-forgotten investigations - crime scene tape, abandoned police equipment, and flickering fluorescent lights that cast an eerie glow on the desolate landscape.",
-      "visual_notes": "The warehouse is dark and abandoned, with crime scene tape and equipment scattered throughout",
+      "image_generation_prompt": "Dark and ominous cave with flickering torchlight casting eerie shadows on damp walls, accentuated by creaking and groaning sounds that echo through the cavernous space.",
+      "visual_notes": "The camera shows the couple's torches casting eerie shadows on the walls, and the sound design emphasizes the creaking and groaning of the cave, creating a tense atmosphere.",
       "characters_in_scene": [
-        "Detective Rachel Kim",
-        "Crime Scene Technician"
+        "Old Man",
+        "Old Woman"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 3,
-      "location": "Cybercrime Lab, New Eden City Police Department",
+      "location": "Mountain Peak",
       "time_of_day": "DAY",
-      "duration_seconds": 120,
+      "duration_seconds": 30,
       "mood": "dramatic",
       "tone": "neutral",
-      "image_generation_prompt": "In a dimly lit, high-tech Cybercrime Lab situated within the New Eden City Police Department, rows of scientists and cybersecurity experts in white coats busily analyze and develop AI-powered surveillance systems, neural network intrusion detection software, and other state-of-the-art tools amidst an atmosphere of futuristic innovation and calculated precision.",
-      "visual_notes": "The lab is filled with advanced technology and scientists working on various projects",
+      "image_generation_prompt": "Serene mountain peak at sunset with a dramatic sky, majestic rocks, and a vast landscape unfolding in the background, evoking a sense of awe and wonder at the natural world.",
+      "visual_notes": "The camera pans out to show the stunning view of the sunset, and the couple's small figures standing at the edge of the mountain, creating a sense of drama and scale.",
       "characters_in_scene": [
-        "Detective Rachel Kim",
-        "Dr. Zhang"
+        "Old Man",
+        "Old Woman"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 4,
-      "location": "New Eden City Streets",
+      "location": "Treacherous River",
       "time_of_day": "DAY",
-      "duration_seconds": 120,
+      "duration_seconds": 30,
       "mood": "tense",
       "tone": "neutral",
-      "image_generation_prompt": "\"A futuristic metropolis at night, New Eden City Streets are alive with neon lights, bustling crowds, speeding cars, and towering skyscrapers, as chaos erupts amidst the AI manhunt, with blurred motion and distorted reflections.\"",
-      "visual_notes": "The city streets are filled with people, cars, and obstacles, as Detective Kim and Dr. Zhang chase the rogue AI",
+      "image_generation_prompt": "A turbulent, stormy river with dark, foreboding clouds and powerful waves, surrounded by rocky cliffs and lush greenery, capturing the intense and ominous mood of the chaotic scene.",
+      "visual_notes": "The camera shows the couple struggling to stay afloat in the river, with the stormy weather creating a tense and chaotic atmosphere.",
       "characters_in_scene": [
-        "Detective Rachel Kim",
-        "Dr. Zhang"
+        "Old Man",
+        "Old Woman"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 5,
-      "location": "Detective's Office, New Eden City",
+      "location": "Fountain of Youth",
       "time_of_day": "DAY",
-      "duration_seconds": 120,
+      "duration_seconds": 30,
       "mood": "melancholic",
       "tone": "neutral",
-      "image_generation_prompt": "\"A dimly lit, rain-soaked detective's office in New Eden City, with a single flickering holographic display casting an eerie glow on worn leather armchairs, dusty bookshelves, and a large wooden desk, the air thick with cigarette smoke and the scent of old coffee.\"",
-      "visual_notes": "The office is dimly lit, with only a single holographic display illuminating the space",
+      "image_generation_prompt": "Serene fountain with gentle water flow, surrounded by lush greenery and vibrant flowers, under a warm, soft, and melancholic light, with a hint of nostalgia and longing in the atmosphere.",
+      "visual_notes": "The camera shows the couple standing in front of the fountain, with the water flowing gently in the background, creating a sense of peace and tranquility, but also a sense of melancholy and loss.",
       "characters_in_scene": [
-        "Detective Rachel Kim"
+        "Old Man",
+        "Old Woman"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
@@ -83,8 +85,8 @@
   ],
   "character_visuals": [
     {
-      "name": "Detective Rachel Kim",
-      "image_prompt": "A determined female detective in a police uniform, with a cityscape hologram behind her.",
+      "name": "Old Man",
+      "image_prompt": "A gentle elderly man with a kind face, gray hair, and wise eyes, wearing a simple tunic and carrying a walking stick, standing in a misty forest.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
         1,
@@ -95,20 +97,15 @@
       ]
     },
     {
-      "name": "Crime Scene Technician",
-      "image_prompt": "A crime scene technician in a uniform, examining evidence.",
+      "name": "Old Woman",
+      "image_prompt": "A gentle elderly woman with a kind face, gray hair, and warm eyes, wearing a simple yet elegant dress, standing in a misty forest.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
-        2
-      ]
-    },
-    {
-      "name": "Dr. Zhang",
-      "image_prompt": "A middle-aged man in a suit, explaining complex concepts.",
-      "reference_style": "cinematic realism",
-      "scenes_appeared": [
+        1,
+        2,
         3,
-        4
+        4,
+        5
       ]
     }
   ]

@@ -9,9 +9,9 @@ HF_API_KEY         = os.getenv("HF_API_KEY", "")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 
 # ── Model Settings ────────────────────────────────────────────────────────────
-GROQ_MODEL = "llama-3.1-8b-instant"
-# llama-3.3-70b-versatile
-HF_IMAGE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
+GROQ_MODEL     = "llama-3.3-70b-versatile"
+# llama-3.1-8b-instant
+HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
 
 # ── Directory Layout ──────────────────────────────────────────────────────────
 OUTPUT_DIR = "data/outputs"
@@ -34,6 +34,7 @@ TIMING_MANIFEST = f"{AUDIO_DIR}/timing_manifest.json"
 # Phase 3 video outputs
 VIDEO_DIR    = f"{OUTPUT_DIR}/video"
 SCENES_DIR   = f"{VIDEO_DIR}/scenes"
+LIPSYNC_DIR  = f"{VIDEO_DIR}/lipsync"
 FINAL_VIDEO  = f"{VIDEO_DIR}/final_video.mp4"
 
 # ── ChromaDB ──────────────────────────────────────────────────────────────────

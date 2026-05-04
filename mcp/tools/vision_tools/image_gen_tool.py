@@ -2,26 +2,11 @@
 mcp/tools/vision_tools/image_gen_tool.py
 ─────────────────────────────────────────
 MCP tool: generate_image
-Primary:  Pollinations.ai  (free, no key needed)
-Fallback: HuggingFace Inference API (requires HF_API_KEY)
+Primary:  HuggingFace Inference API (requires HF_API_KEY)
+Fallback: Pollinations.ai  (free, no key needed)
 """
 
 from mcp.tool_registry import mcp, MCPToolSchema
-
-
-def _pollinations(prompt: str, width: int, height: int) -> bytes | None:
-    import urllib.parse, requests
-    encoded = urllib.parse.quote(prompt)
-    url     = (f"https://image.pollinations.ai/prompt/{encoded}"
-               f"?width={width}&height={height}&model=flux&nologo=true")
-    try:
-        resp = requests.get(url, timeout=90)
-        if resp.status_code == 200 and resp.content:
-            return resp.content
-        print(f"[MCP:generate_image] Pollinations returned {resp.status_code}")
-    except Exception as e:
-        print(f"[MCP:generate_image] Pollinations error: {e}")
-    return None
 
 
 def _hf(prompt: str) -> bytes | None:
@@ -44,6 +29,21 @@ def _hf(prompt: str) -> bytes | None:
     return None
 
 
+def _pollinations(prompt: str, width: int, height: int) -> bytes | None:
+    import urllib.parse, requests
+    encoded = urllib.parse.quote(prompt)
+    url     = (f"https://image.pollinations.ai/prompt/{encoded}"
+               f"?width={width}&height={height}&model=flux&nologo=true")
+    try:
+        resp = requests.get(url, timeout=90)
+        if resp.status_code == 200 and resp.content:
+            return resp.content
+        print(f"[MCP:generate_image] Pollinations returned {resp.status_code}")
+    except Exception as e:
+        print(f"[MCP:generate_image] Pollinations error: {e}")
+    return None
+
+
 def _generate_image(character_name: str, prompt: str, style: str = "cinematic realism") -> str | None:
     import io, os
     from PIL import Image
@@ -51,7 +51,7 @@ def _generate_image(character_name: str, prompt: str, style: str = "cinematic re
 
     full_prompt = f"{prompt}, {style}, highly detailed, professional portrait, face visible"
 
-    raw = _pollinations(full_prompt, 512, 512) or _hf(full_prompt)
+    raw = _hf(full_prompt) or _pollinations(full_prompt, 512, 512)
     if not raw:
         return None
 

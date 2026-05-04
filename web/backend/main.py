@@ -1,7 +1,7 @@
 """
 web/backend/main.py
 ────────────────────
-FastAPI backend for Phase 4 web interface.
+FastAPI backend — Phase 4 pipeline runner + Phase 5 edit/undo system.
 
 Start:
     uvicorn web.backend.main:app --reload --port 8000
@@ -36,7 +36,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Shared state ──────────────────────────────────────────────────────────────
+# ── State manager (Phase 5) ───────────────────────────────────────────────────
+
+from agents.edit_agent.state_manager import StateManager  # noqa: E402
+
+_state_mgr = StateManager()
+
+# ── Shared pipeline state ─────────────────────────────────────────────────────
 
 PHASE_LABELS = {
     1: "Story & Script",
@@ -64,14 +70,11 @@ def _new_job(prompt=""):
     }
 
 
-# Mutable global state (single-user app)
-_job: dict = _new_job()
-_events: list[dict] = []
-_pipeline_done: bool = False
+_job: dict            = _new_job()
+_events: list[dict]   = []
+_pipeline_done: bool  = False
 _active_task: asyncio.Task | None = None
 
-
-# ── Event helpers ─────────────────────────────────────────────────────────────
 
 def _emit(event: dict) -> None:
     _events.append(event)
@@ -115,7 +118,7 @@ async def _run_phase(phase: int, prompt: str) -> bool:
 
     try:
         returncode = await asyncio.to_thread(_run_sync)
-        success = returncode == 0
+        success    = returncode == 0
         if not success:
             _log(f"[ERROR] Process exited with code {returncode}")
     except asyncio.CancelledError:
@@ -136,25 +139,38 @@ async def _run_phase(phase: int, prompt: str) -> bool:
     return success
 
 
-async def _pipeline(from_phase: int, prompt: str) -> None:
+async def _pipeline(from_phase: int, prompt: str, snapshot_desc: str = "") -> None:
     global _pipeline_done
     _job["active"] = True
     _pipeline_done = False
 
+    last_successful = from_phase - 1
     try:
         for phase in range(from_phase, 4):
             ok = await _run_phase(phase, prompt)
-            if not ok:
+            if ok:
+                last_successful = phase
+            else:
                 break
     except asyncio.CancelledError:
         pass
     finally:
         _job["active"] = False
         _pipeline_done = True
-        _emit({"type": "done", "has_video": os.path.exists(FINAL_VIDEO)})
+        has_video = os.path.exists(FINAL_VIDEO)
+        _emit({"type": "done", "has_video": has_video})
+
+        # Auto-snapshot after a successful run that reached Phase 3
+        if last_successful >= 3 or (last_successful >= from_phase):
+            desc = snapshot_desc or f"Pipeline run from Phase {from_phase}"
+            try:
+                await asyncio.to_thread(_state_mgr.snapshot, desc)
+                _emit({"type": "snapshot", "description": desc})
+            except Exception as e:
+                print(f"[Backend] Snapshot failed: {e}")
 
 
-# ── Request models ────────────────────────────────────────────────────────────
+# ── Request/response models ───────────────────────────────────────────────────
 
 class StartReq(BaseModel):
     prompt: str
@@ -164,7 +180,12 @@ class RerunReq(BaseModel):
     phase: int
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+class EditReq(BaseModel):
+    query:     str
+    thread_id: str = "default"
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 async def _cancel_active():
     global _active_task
@@ -176,6 +197,8 @@ async def _cancel_active():
             pass
 
 
+# ── Pipeline routes ───────────────────────────────────────────────────────────
+
 @app.post("/api/start")
 async def start(req: StartReq):
     global _job, _events, _pipeline_done, _active_task
@@ -183,7 +206,9 @@ async def start(req: StartReq):
     _job = _new_job(req.prompt)
     _events.clear()
     _pipeline_done = False
-    _active_task = asyncio.create_task(_pipeline(1, req.prompt))
+    _active_task = asyncio.create_task(
+        _pipeline(1, req.prompt, f"Full run — {req.prompt[:60]}")
+    )
     return {"job_id": _job["id"]}
 
 
@@ -194,38 +219,36 @@ async def rerun(req: RerunReq):
         raise HTTPException(400, "phase must be 1, 2, or 3")
     await _cancel_active()
 
-    # Reset requested phase and all after it
     for p in range(req.phase, 4):
         _job["phases"][p] = _blank_phase()
 
-    # Keep only events that belong to earlier phases
     kept = [e for e in _events if e.get("phase", 0) < req.phase or "phase" not in e]
     _events.clear()
     _events.extend(kept)
 
     _pipeline_done = False
-    _active_task = asyncio.create_task(_pipeline(req.phase, _job["prompt"]))
+    _active_task = asyncio.create_task(
+        _pipeline(req.phase, _job["prompt"], f"Re-run from Phase {req.phase}")
+    )
     return {"ok": True}
 
 
 @app.get("/api/stream")
 async def stream_sse():
     async def gen() -> AsyncIterator[str]:
-        cursor = 0
+        cursor     = 0
         idle_ticks = 0
         while True:
-            # Drain all pending events from cursor
             while cursor < len(_events):
                 yield f"data: {json.dumps(_events[cursor])}\n\n"
-                cursor += 1
-                idle_ticks = 0
+                cursor     += 1
+                idle_ticks  = 0
 
             if _pipeline_done and cursor >= len(_events):
                 break
 
             await asyncio.sleep(0.15)
             idle_ticks += 1
-            # Send SSE comment keepalive every ~20 s to prevent proxy timeouts
             if idle_ticks % 133 == 0:
                 yield ": keepalive\n\n"
 
@@ -253,7 +276,77 @@ async def health():
     return {"ok": True}
 
 
-# Serve all generated outputs (images, audio previews, etc.)
+# ── Edit & undo routes (Phase 5) ──────────────────────────────────────────────
+
+@app.post("/api/edit")
+async def edit(req: EditReq):
+    """Classify and execute a free-text edit query."""
+    from agents.edit_agent.agent import run_edit
+
+    try:
+        final_state = await asyncio.to_thread(run_edit, req.query, req.thread_id)
+    except Exception as exc:
+        raise HTTPException(500, f"Edit agent error: {exc}")
+
+    intent         = final_state.get("intent")
+    result         = final_state.get("result") or {}
+    error          = final_state.get("error")
+    phase_to_rerun = result.get("phase_to_rerun")
+
+    if error:
+        return {"ok": False, "error": error, "intent": intent, "result": result, "phase_to_rerun": None}
+
+    # Take a snapshot of the modified state before the rerun
+    if result.get("ok"):
+        desc = f"Edit: {intent.get('intent','?')} — {result.get('message','')[:80]}"
+        try:
+            await asyncio.to_thread(_state_mgr.snapshot, desc)
+        except Exception as e:
+            print(f"[Backend] Snapshot failed: {e}")
+
+    return {
+        "ok":            result.get("ok", False),
+        "intent":        intent,
+        "result":        result,
+        "message":       result.get("message", ""),
+        "phase_to_rerun": phase_to_rerun,
+    }
+
+
+@app.get("/api/versions")
+async def list_versions():
+    """Return version history."""
+    versions = await asyncio.to_thread(_state_mgr.history)
+    return {"versions": versions}
+
+
+@app.post("/api/revert/{version}")
+async def revert_version(version: str):
+    """Restore assets and state to a previous snapshot."""
+    global _events, _pipeline_done, _active_task
+    await _cancel_active()
+
+    try:
+        await asyncio.to_thread(_state_mgr.revert, version)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(404, str(exc))
+    except Exception as exc:
+        raise HTTPException(500, str(exc))
+
+    # Reset pipeline UI state so the user can rerun from here
+    for p in (1, 2, 3):
+        _job["phases"][p] = _blank_phase()
+    _events.clear()
+    _pipeline_done = True
+    _emit({"type": "reverted", "version": version})
+
+    return {"ok": True, "version": version}
+
+
+# ── Static outputs ────────────────────────────────────────────────────────────
+
 _out_dir = os.path.join(PROJECT_ROOT, "data", "outputs")
 os.makedirs(_out_dir, exist_ok=True)
 app.mount("/outputs", StaticFiles(directory=_out_dir), name="outputs")

@@ -27,6 +27,8 @@ data/outputs/video/
 # Model checkpoints inside are 400MB+
 agents/video_agent/Wav2Lip/
 
+data/state_versions
+
 # Model weight files anywhere
 *.pth
 *.pt
