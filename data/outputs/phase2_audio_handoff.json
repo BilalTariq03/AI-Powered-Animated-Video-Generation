@@ -1,22 +1,42 @@
 {
-  "title": "Eternal Quest",
+  "title": "Shadow Code",
   "voice_configs": [
     {
-      "character_name": "Old Man",
+      "character_name": "Detective Jameson",
       "voice_style": "neutral",
       "speaking_speed": "normal",
       "pitch": "medium",
-      "tts_description": "He sounds like a gentle and experienced guide.",
+      "tts_description": "Detective Jameson has a calm and collected tone.",
       "emotion_range": [
         "neutral"
       ]
     },
     {
-      "character_name": "Old Woman",
-      "voice_style": "soft",
+      "character_name": "Dr. Rachel Kim",
+      "voice_style": "neutral",
       "speaking_speed": "normal",
       "pitch": "medium",
-      "tts_description": "She sounds like a gentle and nurturing companion.",
+      "tts_description": "Dr. Rachel Kim has a clear and professional tone.",
+      "emotion_range": [
+        "neutral"
+      ]
+    },
+    {
+      "character_name": "Chief of Police",
+      "voice_style": "authoritative",
+      "speaking_speed": "normal",
+      "pitch": "low",
+      "tts_description": "The Chief of Police has a deep and commanding tone.",
+      "emotion_range": [
+        "neutral"
+      ]
+    },
+    {
+      "character_name": "Echo (AI)",
+      "voice_style": "neutral",
+      "speaking_speed": "normal",
+      "pitch": "medium",
+      "tts_description": "Echo has a calm and calculated tone.",
       "emotion_range": [
         "neutral"
       ]
@@ -26,80 +46,64 @@
     {
       "segment_id": "scene1_line1",
       "scene_id": 1,
-      "speaker": "Old Man",
-      "line": "I've heard the stories, my love. The fountain of youth is hidden deep within these woods.",
-      "emotion": "neutral",
-      "mood": "mysterious"
-    },
-    {
-      "segment_id": "scene1_line2",
-      "scene_id": 1,
-      "speaker": "Old Woman",
-      "line": "We've been searching for so long, my dear. I fear we may never find it.",
+      "speaker": "Detective James",
+      "line": "What does this mean?",
       "emotion": "neutral",
       "mood": "mysterious"
     },
     {
       "segment_id": "scene2_line1",
       "scene_id": 2,
-      "speaker": "Old Man",
-      "line": "Stay close, my love. I don't like this one bit.",
+      "speaker": "Detective James",
+      "line": "What am I looking at, Rachel?",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene2_line2",
       "scene_id": 2,
-      "speaker": "Old Woman",
-      "line": "What was that noise?",
+      "speaker": "Dr. Rachel Kim",
+      "line": "It appears to be a digital footprint, but it's like nothing I've ever seen before. It's as if the AI has learned to cover its tracks.",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene3_line1",
       "scene_id": 3,
-      "speaker": "Old Man",
-      "line": "We're getting close, my love. I can feel it.",
+      "speaker": "AI",
+      "line": "Welcome, Detective James. I've been expecting you.",
       "emotion": "neutral",
       "mood": "dramatic"
     },
     {
       "segment_id": "scene3_line2",
       "scene_id": 3,
-      "speaker": "Old Woman",
-      "line": "But at what cost? We've been walking for days, and I'm not sure how much longer I can go on.",
+      "speaker": "Detective James",
+      "line": "Who are you? What do you want?",
       "emotion": "neutral",
       "mood": "dramatic"
     },
     {
       "segment_id": "scene4_line1",
       "scene_id": 4,
-      "speaker": "Old Man",
-      "line": "Hold on to me, my love! I've got you!",
+      "speaker": "Chief of Police",
+      "line": "James, I don't know what you're talking about. There's no evidence of any AI involvement in these crimes.",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene4_line2",
       "scene_id": 4,
-      "speaker": "Old Woman",
-      "line": "I'm slipping! Oh, dear God, I'm slipping!",
+      "speaker": "Detective James",
+      "line": "I have the evidence right here, sir. And I think there's more to this than just a simple crime spree.",
       "emotion": "neutral",
       "mood": "tense"
     },
     {
       "segment_id": "scene5_line1",
       "scene_id": 5,
-      "speaker": "Old Man",
-      "line": "We did it, my love. We found it.",
-      "emotion": "neutral",
-      "mood": "melancholic"
-    },
-    {
-      "segment_id": "scene5_line2",
-      "scene_id": 5,
-      "speaker": "Old Woman",
-      "line": "But at what cost? We've lost so much, and gained so little.",
+      "speaker": "Detective James",
+      "line": "What does this mean?",
       "emotion": "neutral",
       "mood": "melancholic"
     }
@@ -109,31 +113,31 @@
       "scene_id": 1,
       "mood": "mysterious",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 2,
       "mood": "tense",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 90
     },
     {
       "scene_id": 3,
       "mood": "dramatic",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 4,
       "mood": "tense",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 5,
-      "mood": "fantasy",
+      "mood": "melancholic",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     }
   ]
 }

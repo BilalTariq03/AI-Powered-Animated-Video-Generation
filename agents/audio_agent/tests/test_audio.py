@@ -180,3 +180,212 @@ class TestAudioGenerationAgent:
         agent.run(handoff_file)
         second = set(os.listdir(tmp_path / "dialogue"))
         assert first == second
+
+
+# ── _fuzzy_voice_match ─────────────────────────────────────────────────────────
+
+class TestFuzzyVoiceMatch:
+    VOICE_MAP = {
+        "Hero":         {"voice_style": "neutral"},
+        "Dr. Smith":    {"voice_style": "authoritative"},
+        "Alice Mercer": {"voice_style": "soft"},
+    }
+
+    def _agent(self):
+        return AudioGenerationAgent()
+
+    def test_exact_match(self):
+        result = self._agent()._fuzzy_voice_match("Hero", self.VOICE_MAP)
+        assert result == {"voice_style": "neutral"}
+
+    def test_case_insensitive_exact(self):
+        result = self._agent()._fuzzy_voice_match("hero", self.VOICE_MAP)
+        assert result is not None
+
+    def test_dots_and_spaces_stripped(self):
+        result = self._agent()._fuzzy_voice_match("DrSmith", self.VOICE_MAP)
+        assert result == {"voice_style": "authoritative"}
+
+    def test_prefix_match(self):
+        # "Alice" should match "Alice Mercer"
+        result = self._agent()._fuzzy_voice_match("Alice", self.VOICE_MAP)
+        assert result == {"voice_style": "soft"}
+
+    def test_word_overlap_match(self):
+        # "Mercer" (5 chars) overlaps with "Alice Mercer"
+        result = self._agent()._fuzzy_voice_match("Mercer", self.VOICE_MAP)
+        assert result == {"voice_style": "soft"}
+
+    def test_no_match_returns_none(self):
+        result = self._agent()._fuzzy_voice_match("Unknown Character", self.VOICE_MAP)
+        assert result is None
+
+    def test_empty_voice_map_returns_none(self):
+        result = self._agent()._fuzzy_voice_match("Hero", {})
+        assert result is None
+
+
+# ── _build_speaker_voices ──────────────────────────────────────────────────────
+
+class TestBuildSpeakerVoices:
+
+    def _agent(self):
+        return AudioGenerationAgent()
+
+    def test_each_speaker_gets_a_voice(self):
+        segments  = [
+            {"speaker": "Hero"},
+            {"speaker": "Villain"},
+        ]
+        voice_map = {}
+        result = self._agent()._build_speaker_voices(segments, voice_map)
+        assert "Hero" in result and "Villain" in result
+
+    def test_unique_styles_assigned(self):
+        segments = [{"speaker": s} for s in ["A", "B", "C", "D"]]
+        voices   = self._agent()._build_speaker_voices(segments, {})
+        styles   = [voices[s]["voice_style"] for s in ["A", "B", "C", "D"]]
+        assert len(styles) == len(set(styles)), "Each speaker should have a unique voice style"
+
+    def test_preferred_style_used_when_available(self):
+        segments  = [{"speaker": "Hero"}]
+        voice_map = {"Hero": {"voice_style": "deep", "speaking_speed": "normal"}}
+        result    = self._agent()._build_speaker_voices(segments, voice_map)
+        assert result["Hero"]["voice_style"] == "deep"
+
+    def test_collision_reassigned_to_unused_style(self):
+        # Both characters prefer "deep" — second one should get a different style
+        segments  = [{"speaker": "A"}, {"speaker": "B"}]
+        voice_map = {
+            "A": {"voice_style": "deep"},
+            "B": {"voice_style": "deep"},
+        }
+        result = self._agent()._build_speaker_voices(segments, voice_map)
+        assert result["A"]["voice_style"] != result["B"]["voice_style"]
+
+    def test_speaking_speed_inherited_from_voice_config(self):
+        segments  = [{"speaker": "Hero"}]
+        voice_map = {"Hero": {"voice_style": "soft", "speaking_speed": "slow"}}
+        result    = self._agent()._build_speaker_voices(segments, voice_map)
+        assert result["Hero"]["speaking_speed"] == "slow"
+
+    def test_unknown_speaker_defaults_to_neutral_speed(self):
+        segments = [{"speaker": "Mystery"}]
+        result   = self._agent()._build_speaker_voices(segments, {})
+        assert result["Mystery"]["speaking_speed"] == "normal"
+
+    def test_speaker_order_preserved(self):
+        speakers = ["Alpha", "Beta", "Gamma"]
+        segments = [{"speaker": s} for s in speakers]
+        result   = self._agent()._build_speaker_voices(segments, {})
+        assert list(result.keys()) == speakers
+
+
+# ── _generate_bgm (mood-arc logic) ────────────────────────────────────────────
+
+class TestGenerateBgmMoodArc:
+
+    @pytest.fixture(autouse=True)
+    def patch_dirs(self, tmp_path, monkeypatch):
+        import agents.audio_agent.agent as mod
+        monkeypatch.setattr(mod, "BGM_DIR", str(tmp_path / "bgm"))
+
+    def test_varied_moods_preserved_as_is(self, tmp_path):
+        music_moods = [
+            {"scene_id": 1, "mood": "dramatic",   "duration_seconds": 3},
+            {"scene_id": 2, "mood": "mysterious",  "duration_seconds": 3},
+            {"scene_id": 3, "mood": "hopeful",     "duration_seconds": 3},
+        ]
+        agent = AudioGenerationAgent()
+        result = agent._generate_bgm(music_moods)
+        assert result[0]["mood"] == "dramatic"
+        assert result[1]["mood"] == "mysterious"
+        assert result[2]["mood"] == "hopeful"
+
+    def test_mono_mood_triggers_arc_reassignment(self, tmp_path):
+        music_moods = [
+            {"scene_id": i + 1, "mood": "dramatic", "duration_seconds": 3}
+            for i in range(4)
+        ]
+        agent  = AudioGenerationAgent()
+        result = agent._generate_bgm(music_moods)
+        moods  = [r["mood"] for r in result]
+        assert len(set(moods)) > 1, "All-same-mood should trigger arc for variety"
+
+    def test_bgm_files_created(self, tmp_path):
+        music_moods = [{"scene_id": 1, "mood": "tense", "duration_seconds": 3}]
+        result = AudioGenerationAgent()._generate_bgm(music_moods)
+        assert os.path.exists(result[0]["audio_file"])
+
+    def test_entries_have_required_fields(self, tmp_path):
+        music_moods = [{"scene_id": 1, "mood": "dramatic", "duration_seconds": 3}]
+        result = AudioGenerationAgent()._generate_bgm(music_moods)
+        for entry in result:
+            assert {"scene_id", "mood", "audio_file", "duration_ms"}.issubset(entry.keys())
+
+
+# ── _build_manifest ────────────────────────────────────────────────────────────
+
+class TestBuildManifest:
+
+    def _timing(self, scene_id, start_ms, end_ms):
+        return {
+            "segment_id": f"scene{scene_id}_line1",
+            "scene_id":   scene_id,
+            "speaker":    "Hero",
+            "line":       "Hello.",
+            "emotion":    "neutral",
+            "audio_file": f"/audio/{scene_id}.mp3",
+            "start_ms":   start_ms,
+            "end_ms":     end_ms,
+            "duration_ms": end_ms - start_ms,
+        }
+
+    def _bgm(self, scene_id, mood="dramatic"):
+        return {
+            "scene_id":   scene_id,
+            "mood":       mood,
+            "audio_file": f"/bgm/scene{scene_id}.mp3",
+            "duration_ms": 30_000,
+        }
+
+    def test_manifest_structure(self):
+        agent    = AudioGenerationAgent()
+        manifest = agent._build_manifest("T", [self._timing(1, 0, 3000)], [self._bgm(1)])
+        assert "title" in manifest
+        assert "total_scenes" in manifest
+        assert "scenes" in manifest
+        assert "flat_segments" in manifest
+
+    def test_scene_count_correct(self):
+        agent    = AudioGenerationAgent()
+        timings  = [self._timing(1, 0, 2000), self._timing(2, 0, 3000)]
+        bgm      = [self._bgm(1), self._bgm(2)]
+        manifest = agent._build_manifest("T", timings, bgm)
+        assert manifest["total_scenes"] == 2
+
+    def test_scenes_sorted_by_id(self):
+        agent    = AudioGenerationAgent()
+        timings  = [self._timing(3, 0, 1000), self._timing(1, 0, 1000)]
+        bgm      = [self._bgm(3), self._bgm(1)]
+        manifest = agent._build_manifest("T", timings, bgm)
+        ids      = [s["scene_id"] for s in manifest["scenes"]]
+        assert ids == sorted(ids)
+
+    def test_total_duration_is_max_of_dialogue_and_bgm(self):
+        agent   = AudioGenerationAgent()
+        timing  = self._timing(1, 0, 5000)   # dialogue ends at 5s
+        bgm     = self._bgm(1)               # BGM is 30s
+        manifest = agent._build_manifest("T", [timing], [bgm])
+        assert manifest["scenes"][0]["total_duration_ms"] == 30_000
+
+    def test_flat_segments_contains_all_entries(self):
+        agent   = AudioGenerationAgent()
+        timings = [self._timing(1, 0, 1000), self._timing(1, 1000, 2500)]
+        manifest = agent._build_manifest("T", timings, [self._bgm(1)])
+        assert len(manifest["flat_segments"]) == 2
+
+    def test_title_preserved(self):
+        agent    = AudioGenerationAgent()
+        manifest = agent._build_manifest("My Story", [self._timing(1, 0, 1000)], [self._bgm(1)])
+        assert manifest["title"] == "My Story"

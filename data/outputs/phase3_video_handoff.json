@@ -1,83 +1,78 @@
 {
-  "title": "Eternal Quest",
-  "genre": "Fantasy Adventure",
+  "title": "Shadow Code",
+  "genre": "Science Fiction",
   "scenes": [
     {
       "scene_id": 1,
-      "location": "Ancient Forest",
-      "time_of_day": "DAWN",
-      "duration_seconds": 30,
+      "location": "Rainy City Streets",
+      "time_of_day": "NIGHT",
+      "duration_seconds": 120,
       "mood": "mysterious",
       "tone": "neutral",
-      "image_generation_prompt": "Serene and mystical ancient forest with towering trees, their gnarled branches stretching towards the sky, surrounded by a thick rolling mist that casts an eerie gloom over the landscape.",
-      "visual_notes": "The camera pans over the forest, showing the ancient trees and the mist rolling in, creating an eerie and mystical atmosphere.",
+      "image_generation_prompt": "Dimly lit rainy city streets with neon signs reflecting off wet pavement, a lone figure in a long black coat with a low-pulled hat walks alone, surrounded by misty fog and blurred streetlights.",
+      "visual_notes": "The city streets are dimly lit, with neon signs reflecting off the wet pavement. Detective James is dressed in a long, black coat, with a hat pulled low over his face.",
       "characters_in_scene": [
-        "Old Man",
-        "Old Woman"
+        "Detective Jameson"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 2,
-      "location": "Dark Cave",
-      "time_of_day": "NIGHT",
-      "duration_seconds": 30,
+      "location": "Crime Scene Lab",
+      "time_of_day": "DAY",
+      "duration_seconds": 90,
       "mood": "tense",
       "tone": "neutral",
-      "image_generation_prompt": "Dark and ominous cave with flickering torchlight casting eerie shadows on damp walls, accentuated by creaking and groaning sounds that echo through the cavernous space.",
-      "visual_notes": "The camera shows the couple's torches casting eerie shadows on the walls, and the sound design emphasizes the creaking and groaning of the cave, creating a tense atmosphere.",
+      "image_generation_prompt": "A futuristic, high-tech crime scene lab filled with rows of sleek computers, forensic analysis machines, and various screens displaying data, all beeping and humming as they process evidence.",
+      "visual_notes": "The lab is filled with various screens and machines, all beeping and humming as they process the evidence. Detective James and Dr. Kim are both dressed in white lab coats, with gloves and masks on.",
       "characters_in_scene": [
-        "Old Man",
-        "Old Woman"
+        "Dr. Rachel Kim"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 3,
-      "location": "Mountain Peak",
-      "time_of_day": "DAY",
-      "duration_seconds": 30,
+      "location": "Abandoned Warehouse",
+      "time_of_day": "DUSK",
+      "duration_seconds": 120,
       "mood": "dramatic",
       "tone": "neutral",
-      "image_generation_prompt": "Serene mountain peak at sunset with a dramatic sky, majestic rocks, and a vast landscape unfolding in the background, evoking a sense of awe and wonder at the natural world.",
-      "visual_notes": "The camera pans out to show the stunning view of the sunset, and the couple's small figures standing at the edge of the mountain, creating a sense of drama and scale.",
+      "image_generation_prompt": "A dimly lit, abandoned warehouse with old crates and boxes scattered everywhere, a large, holographic screen glows in the center of the room, surrounded by darkness and eerie silence.",
+      "visual_notes": "The warehouse is dark and empty, with old crates and boxes scattered everywhere. Detective James is dressed in his black coat and hat, with his gun drawn. The AI is represented by a large, holographic screen in the center of the room.",
       "characters_in_scene": [
-        "Old Man",
-        "Old Woman"
+        "Detective Jameson"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 4,
-      "location": "Treacherous River",
+      "location": "Police Headquarters",
       "time_of_day": "DAY",
-      "duration_seconds": 30,
+      "duration_seconds": 120,
       "mood": "tense",
       "tone": "neutral",
-      "image_generation_prompt": "A turbulent, stormy river with dark, foreboding clouds and powerful waves, surrounded by rocky cliffs and lush greenery, capturing the intense and ominous mood of the chaotic scene.",
-      "visual_notes": "The camera shows the couple struggling to stay afloat in the river, with the stormy weather creating a tense and chaotic atmosphere.",
+      "image_generation_prompt": "A large, bustling office with rows of desks and computers, a private office in the background with a large window, filled with natural light, and a cityscape view outside.",
+      "visual_notes": "The Police Headquarters is a large, bustling office filled with desks and computers. Detective James and the Chief of Police are seated in a small, private office, with a large window behind them.",
       "characters_in_scene": [
-        "Old Man",
-        "Old Woman"
+        "Chief of Police"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 5,
-      "location": "Fountain of Youth",
+      "location": "Detective's Apartment",
       "time_of_day": "DAY",
-      "duration_seconds": 30,
+      "duration_seconds": 120,
       "mood": "melancholic",
       "tone": "neutral",
-      "image_generation_prompt": "Serene fountain with gentle water flow, surrounded by lush greenery and vibrant flowers, under a warm, soft, and melancholic light, with a hint of nostalgia and longing in the atmosphere.",
-      "visual_notes": "The camera shows the couple standing in front of the fountain, with the water flowing gently in the background, creating a sense of peace and tranquility, but also a sense of melancholy and loss.",
+      "image_generation_prompt": "A dimly lit, minimalist detective's apartment with a single, soft desk lamp casting a warm glow, whiskey glass, and a holographic screen emitting an ethereal ambiance.",
+      "visual_notes": "The apartment is dark and quiet, with only a small, desk lamp illuminating the room. Detective James is dressed in a simple, white shirt, with a glass of whiskey in front of him. The holographic screen is small, but it fills the room with an otherworldly glow.",
       "characters_in_scene": [
-        "Old Man",
-        "Old Woman"
+        "Detective Jameson"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
@@ -85,8 +80,8 @@
   ],
   "character_visuals": [
     {
-      "name": "Old Man",
-      "image_prompt": "A gentle elderly man with a kind face, gray hair, and wise eyes, wearing a simple tunic and carrying a walking stick, standing in a misty forest.",
+      "name": "Detective Jameson",
+      "image_prompt": "Portrait of Detective Jameson, protagonist, 30s, male, cinematic realism, photorealistic, professional photography, studio lighting, high detail, 4K render, sharp focus.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
         1,
@@ -97,15 +92,27 @@
       ]
     },
     {
-      "name": "Old Woman",
-      "image_prompt": "A gentle elderly woman with a kind face, gray hair, and warm eyes, wearing a simple yet elegant dress, standing in a misty forest.",
+      "name": "Dr. Rachel Kim",
+      "image_prompt": "Portrait of Dr. Rachel Kim, supporting, 20s, female, cinematic realism, photorealistic, professional photography, studio lighting, high detail, 4K render, sharp focus.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
-        1,
-        2,
-        3,
-        4,
-        5
+        2
+      ]
+    },
+    {
+      "name": "Chief of Police",
+      "image_prompt": "Portrait of Chief of Police, supporting, 50s, male, cinematic realism, photorealistic, professional photography, studio lighting, high detail, 4K render, sharp focus.",
+      "reference_style": "cinematic realism",
+      "scenes_appeared": [
+        4
+      ]
+    },
+    {
+      "name": "Echo (AI)",
+      "image_prompt": "Portrait of Echo (AI), antagonist, unknown, unknown, cinematic realism, photorealistic, professional photography, studio lighting, high detail, 4K render, sharp focus.",
+      "reference_style": "cinematic realism",
+      "scenes_appeared": [
+        3
       ]
     }
   ]
