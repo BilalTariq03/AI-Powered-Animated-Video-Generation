@@ -10,7 +10,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-MoodType      = Literal["tense", "mysterious", "hopeful", "dramatic", "comedic", "romantic", "melancholic"]
+MoodType      = Literal["tense", "mysterious", "hopeful", "dramatic", "comedic", "romantic", "melancholic", "fantasy"]
 ToneType      = Literal["dark", "light", "neutral", "suspenseful", "uplifting"]
 EmotionType   = Literal["neutral", "angry", "sad", "excited", "fearful", "surprised", "disgusted", "happy"]
 TimeOfDay     = Literal["DAY", "NIGHT", "DAWN", "DUSK"]

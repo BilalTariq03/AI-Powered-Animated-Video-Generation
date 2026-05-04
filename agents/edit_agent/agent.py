@@ -87,7 +87,7 @@ SCOPE FORMAT (pick the most specific one):
 
 PARAMETER KEYS TO EXTRACT:
   tone / voice_style : deep | soft | authoritative | raspy | whispery | high-pitched | neutral
-  mood               : dramatic | tense | mysterious | hopeful | melancholic | comedic | romantic
+  mood               : dramatic | tense | mysterious | hopeful | melancholic | comedic | romantic | fantasy
   factor             : numeric speed multiplier (e.g. 2.0)
   description        : free-text image description for visual changes
   style              : art style descriptor (e.g. "anime", "noir", "watercolor")"""

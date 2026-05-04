@@ -23,7 +23,7 @@ _VALID_VOICE_STYLES = {
 }
 
 _VALID_MOODS = {
-    "dramatic", "tense", "mysterious", "hopeful", "melancholic", "comedic", "romantic"
+    "dramatic", "tense", "mysterious", "hopeful", "melancholic", "comedic", "romantic", "fantasy"
 }
 
 

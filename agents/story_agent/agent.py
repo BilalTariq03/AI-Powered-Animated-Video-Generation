@@ -29,7 +29,7 @@ The JSON must follow this exact schema:
       "location": "Setting description",
       "time_of_day": "DAY | NIGHT | DAWN | DUSK",
       "duration_seconds": 30,
-      "mood": "tense | mysterious | hopeful | dramatic | comedic | romantic | melancholic",
+      "mood": "tense | mysterious | hopeful | dramatic | comedic | romantic | melancholic | fantasy",
       "tone": "dark | light | neutral | suspenseful | uplifting",
       "characters": ["CharacterName1"],
       "action": "Description of what happens.",
@@ -169,7 +169,7 @@ class ScriptwriterAgent(BaseAgent):
         return list(names)
 
     def _enrich(self, parsed: dict, story_meta: dict, original_prompt: str) -> dict:
-        valid_moods    = {"tense","mysterious","hopeful","dramatic","comedic","romantic","melancholic"}
+        valid_moods    = {"tense","mysterious","hopeful","dramatic","comedic","romantic","melancholic","fantasy"}
         valid_tones    = {"dark","light","neutral","suspenseful","uplifting"}
         valid_emotions = {"neutral","angry","sad","excited","fearful","surprised","disgusted","happy"}
         valid_times    = {"DAY","NIGHT","DAWN","DUSK"}

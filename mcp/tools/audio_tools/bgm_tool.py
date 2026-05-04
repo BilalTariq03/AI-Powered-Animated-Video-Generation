@@ -28,6 +28,8 @@ _MOOD_PARAMS: dict[str, dict] = {
     "melancholic": dict(base_freq=196, harmonics=[1.0, 1.50, 1.78, 2.67],       amplitude=0.20, lfo_hz=0.07, pulse_bpm=38,  use_triangle=True),
     "comedic":     dict(base_freq=392, harmonics=[1.0, 1.25, 1.50, 2.00, 2.50], amplitude=0.18, lfo_hz=0.35, pulse_bpm=120, use_triangle=True),
     "romantic":    dict(base_freq=261, harmonics=[1.0, 1.50, 2.00, 2.50, 3.00], amplitude=0.18, lfo_hz=0.06, pulse_bpm=48,  use_triangle=True),
+    # Pentatonic-flavoured partials (1.0, 1.25, 1.5, 1.875) evoke harp/bell timbre
+    "fantasy":     dict(base_freq=293, harmonics=[1.0, 1.25, 1.50, 1.875, 2.50, 3.00], amplitude=0.20, lfo_hz=0.08, pulse_bpm=60,  use_triangle=True),
 }
 
 

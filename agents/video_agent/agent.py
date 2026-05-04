@@ -46,6 +46,7 @@ _MOOD_GRADIENT = {
     "melancholic": ((15, 15, 35),  (50, 50, 80)),
     "comedic":     ((30, 70, 30),  (90, 150, 70)),
     "romantic":    ((55, 15, 35),  (110, 55, 75)),
+    "fantasy":     ((20, 10, 60),  (80,  50, 130)),  # deep violet → soft purple
 }
 _TIME_BRIGHTNESS = {"DAY": 1.0, "DAWN": 0.75, "DUSK": 0.65, "NIGHT": 0.45}
 
@@ -308,27 +309,15 @@ class VideoGenerationAgent:
                     tl = Image.new("RGBA", char_pil.size, tint)
                     char_pil = Image.alpha_composite(char_pil.convert("RGBA"), tl)
 
-            # Body animation: breathing + talking pulse
-            breathe = 1.0 + 0.015 * np.sin(2 * np.pi * 0.2 * t)
-            if active:
-                bob        = int(4 * np.sin(2 * np.pi * 1.5 * t))
-                talk_scale = 1.0 + 0.03 * np.sin(2 * np.pi * 3.0 * t)
-                scale      = breathe * talk_scale
-            else:
-                bob   = 0
-                scale = breathe
-
-            # Aspect-ratio-preserving resize (letterbox into CHAR_W × CHAR_H)
+            # Static resize — letterbox into CHAR_W × CHAR_H, no animation
             orig_w, orig_h = char_pil.size
-            fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1)) * scale
+            fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1))
             pw = int(orig_w * fit_ratio)
             ph = int(orig_h * fit_ratio)
             char_pil = char_pil.resize((pw, ph), Image.LANCZOS)
 
             canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
-            ox = (CHAR_W - pw) // 2
-            oy = (CHAR_H - ph) // 2 + bob
-            canvas.paste(char_pil, (ox, oy), char_pil)
+            canvas.paste(char_pil, ((CHAR_W - pw) // 2, (CHAR_H - ph) // 2), char_pil)
             char_pil = canvas
 
             # Glow border: blue when speaking, grey when idle
