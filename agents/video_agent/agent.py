@@ -4,15 +4,14 @@ agents/video_agent/agent.py
 Phase 3 — Video Generation Agent.
 
 Per-scene pipeline:
-  1. Generate background (HuggingFace FLUX) with gradient fallback
+  1. Generate background (Pollinations/HF) with gradient fallback
   2. Ken Burns zoom+pan on background
-  3. Pre-render Wav2Lip lip-sync clip per dialogue segment (if available)
-  4. Character switching — active speaker shown large; others dimmed at edge
-  5. Body sway + head-bob animation when Wav2Lip not available
-  6. Emotion tint on portrait during each line
-  7. Subtitle bar timed to timing_manifest
-  8. BGM + dialogue audio mixed and trimmed to actual dialogue length
-  9. 0.5s fade-in / fade-out transitions
+  3. Character switching — active speaker shown large; others dimmed at edge
+  4. Body sway + head-bob animation per speaker
+  5. Emotion tint on portrait during each line
+  6. Subtitle bar timed to timing_manifest
+  7. BGM + dialogue audio mixed and trimmed to actual dialogue length
+  8. 0.5s fade-in / fade-out transitions
 
 Scene duration = last dialogue end_ms + 2s buffer (not padded 30s from Phase 1).
 """
@@ -25,7 +24,7 @@ from PIL import Image, ImageDraw
 
 from config import (
     HF_API_KEY, HF_IMAGE_MODEL, IMAGES_DIR,
-    VIDEO_DIR, SCENES_DIR, LIPSYNC_DIR, FINAL_VIDEO,
+    VIDEO_DIR, SCENES_DIR, FINAL_VIDEO,
     PHASE3_HANDOFF, TIMING_MANIFEST,
 )
 
@@ -73,13 +72,8 @@ class VideoGenerationAgent:
         timing_by_scene = {s["scene_id"]: s for s in timing.get("scenes", [])}
         char_images     = self._resolve_char_images(handoff.get("character_visuals", []))
 
-        for d in (SCENES_DIR, LIPSYNC_DIR, IMAGES_DIR):
+        for d in (SCENES_DIR, IMAGES_DIR):
             os.makedirs(d, exist_ok=True)
-
-        # Wav2Lip availability check
-        from agents.video_agent import lip_sync
-        use_lipsync = lip_sync.is_available()
-        print(f"[VideoAgent] Wav2Lip: {'ENABLED' if use_lipsync else 'NOT SET UP (run setup_wav2lip.py)'}")
 
         print(f"[VideoAgent] Generating {len(handoff['scenes'])} scene backgrounds...")
         bg_paths = self._prepare_backgrounds(handoff["scenes"])
@@ -93,7 +87,7 @@ class VideoGenerationAgent:
             print(f"[VideoAgent] Rendering scene {sid}  ({duration:.1f}s)...")
             clip = self._render_scene(
                 scene, timing_scene, bg_paths.get(sid),
-                char_images, duration, use_lipsync,
+                char_images, duration,
             )
             clip = clip.fadein(FADE_DUR).fadeout(FADE_DUR)
 
@@ -198,39 +192,15 @@ class VideoGenerationAgent:
 
     def _render_scene(self, scene: dict, timing_scene: dict,
                       bg_path: str | None, char_images: dict,
-                      duration: float, use_lipsync: bool):
+                      duration: float):
         from moviepy.editor import VideoClip
-        from agents.video_agent import lip_sync
 
         segments    = timing_scene.get("dialogue_segments", [])
         bgm_file    = timing_scene.get("bgm_file", "")
-        scene_id    = scene["scene_id"]
         chars_in    = scene.get("characters_in_scene", [])
         scene_label = scene.get("location", "")
 
-        # ── Pre-render Wav2Lip clips per segment ──────────────────────────
         timeline = self._build_timeline(segments)
-        if use_lipsync:
-            print(f"[VideoAgent]   Running Wav2Lip on {len(timeline)} segments...")
-            for item in timeline:
-                speaker    = item["speaker"]
-                face_path  = self._find_char_image(speaker, char_images)
-                audio_path = item.get("audio_file", "")
-                if not face_path or not audio_path or not os.path.exists(audio_path):
-                    continue
-                out_mp4 = os.path.join(
-                    LIPSYNC_DIR, f"scene{scene_id}_{item['segment_id']}.mp4"
-                )
-                if os.path.exists(out_mp4):
-                    print(f"[VideoAgent]     {item['segment_id']}: cached")
-                else:
-                    print(f"[VideoAgent]     {item['segment_id']}: generating...")
-                    lip_sync.generate(face_path, audio_path, out_mp4)
-
-                if os.path.exists(out_mp4):
-                    frames = lip_sync.load_frames(out_mp4)
-                    if frames:
-                        item["lipsync_frames"] = frames
 
         # ── Load and oversized background for Ken Burns ───────────────────
         bg_arr = self._load_bg(bg_path, scene)
@@ -338,60 +308,28 @@ class VideoGenerationAgent:
                     tl = Image.new("RGBA", char_pil.size, tint)
                     char_pil = Image.alpha_composite(char_pil.convert("RGBA"), tl)
 
-            # Wav2Lip frame override when speaking — overlay animated face on portrait
-            if active and "lipsync_frames" in active:
-                frames   = active["lipsync_frames"]
-                t_in_seg = t - active["start"]
-                fidx     = min(int(t_in_seg * FPS), len(frames) - 1)
-                lip_frame = Image.fromarray(frames[fidx]).convert("RGBA")
-
-                # Base: full portrait letterboxed into CHAR_W × CHAR_H
-                orig_w, orig_h = char_pil.size
-                fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1))
-                base_w = int(orig_w * fit_ratio)
-                base_h = int(orig_h * fit_ratio)
-                base = char_pil.resize((base_w, base_h), Image.LANCZOS)
-                canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
-                bx = (CHAR_W - base_w) // 2
-                by = (CHAR_H - base_h) // 2
-                canvas.paste(base, (bx, by), base)
-
-                # Overlay lipsync frame on face region (upper 65% of portrait area)
-                face_h_limit = int(base_h * 0.65)
-                lf_w, lf_h = lip_frame.size
-                lf_ratio = min(base_w / max(lf_w, 1), face_h_limit / max(lf_h, 1))
-                lf_nw = int(lf_w * lf_ratio)
-                lf_nh = int(lf_h * lf_ratio)
-                lip_frame = lip_frame.resize((lf_nw, lf_nh), Image.LANCZOS)
-                lx = bx + (base_w - lf_nw) // 2
-                canvas.paste(lip_frame, (lx, by), lip_frame)
-                char_pil = canvas
+            # Body animation: breathing + talking pulse
+            breathe = 1.0 + 0.015 * np.sin(2 * np.pi * 0.2 * t)
+            if active:
+                bob        = int(4 * np.sin(2 * np.pi * 1.5 * t))
+                talk_scale = 1.0 + 0.03 * np.sin(2 * np.pi * 3.0 * t)
+                scale      = breathe * talk_scale
             else:
-                # Body animation: breathing + talking pulse
-                breathe = 1.0 + 0.015 * np.sin(2 * np.pi * 0.2 * t)
-                if active:
-                    # Head bob: ±4px vertical at 1.5 Hz
-                    bob = int(4 * np.sin(2 * np.pi * 1.5 * t))
-                    # Talking scale: ±3% at 3 Hz
-                    talk_scale = 1.0 + 0.03 * np.sin(2 * np.pi * 3.0 * t)
-                    scale = breathe * talk_scale
-                else:
-                    bob   = 0
-                    scale = breathe
+                bob   = 0
+                scale = breathe
 
-                # Aspect-ratio-preserving resize (letterbox into CHAR_W × CHAR_H)
-                orig_w, orig_h = char_pil.size
-                fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1)) * scale
-                pw = int(orig_w * fit_ratio)
-                ph = int(orig_h * fit_ratio)
-                char_pil = char_pil.resize((pw, ph), Image.LANCZOS)
+            # Aspect-ratio-preserving resize (letterbox into CHAR_W × CHAR_H)
+            orig_w, orig_h = char_pil.size
+            fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1)) * scale
+            pw = int(orig_w * fit_ratio)
+            ph = int(orig_h * fit_ratio)
+            char_pil = char_pil.resize((pw, ph), Image.LANCZOS)
 
-                # Pad/crop back to CHAR_W x CHAR_H so position stays fixed
-                canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
-                ox = (CHAR_W - pw) // 2
-                oy = (CHAR_H - ph) // 2 + bob
-                canvas.paste(char_pil, (ox, oy), char_pil)
-                char_pil = canvas
+            canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
+            ox = (CHAR_W - pw) // 2
+            oy = (CHAR_H - ph) // 2 + bob
+            canvas.paste(char_pil, (ox, oy), char_pil)
+            char_pil = canvas
 
             # Glow border: blue when speaking, grey when idle
             border_col = (100, 180, 255, 190) if active else (160, 160, 160, 110)
