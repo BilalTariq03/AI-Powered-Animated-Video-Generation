@@ -1,0 +1,242 @@
+/* ── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0e0e14;
+  --surface:     #17172a;
+  --surface2:    #1e1e38;
+  --border:      #2a2a4a;
+  --accent:      #4f8ef7;
+  --accent-dim:  #2d5cbf;
+  --text:        #e0e0f0;
+  --text-muted:  #7a7a9a;
+  --green:       #3ecf6e;
+  --red:         #e05252;
+  --amber:       #f0a033;
+  --radius:      8px;
+  --font-mono:   'Consolas', 'Menlo', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Layout ───────────────────────────────────────────── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 18px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.header h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.header-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+.main {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Prompt card ──────────────────────────────────────── */
+.prompt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.prompt-label { font-size: 0.78rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text-muted); }
+
+.prompt-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.prompt-input:focus { border-color: var(--accent); }
+.prompt-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-generate {
+  align-self: flex-end;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px 24px;
+  transition: background 0.2s;
+}
+.btn-generate:hover:not(:disabled) { background: #6aa3ff; }
+.btn-generate:disabled, .btn-disabled {
+  background: var(--accent-dim);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ── Phases ───────────────────────────────────────────── */
+.phases { display: flex; flex-direction: column; gap: 12px; }
+
+.phase-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.phase-card.phase-running { border-color: var(--amber); }
+.phase-card.phase-done    { border-color: var(--green); }
+.phase-card.phase-error   { border-color: var(--red); }
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.phase-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.phase-num   { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+.phase-label { font-weight: 600; font-size: 0.95rem; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+.status-running { background: rgba(240,160,51,.15);  color: var(--amber); }
+.status-done    { background: rgba(62,207,110,.12);  color: var(--green); }
+.status-error   { background: rgba(224,82,82,.15);   color: var(--red);   }
+
+/* Spinner */
+.spinner {
+  width: 8px; height: 8px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.phase-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-rerun {
+  background: none;
+  border: 1px solid var(--accent-dim);
+  border-radius: 5px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  transition: background 0.15s;
+}
+.btn-rerun:hover:not(:disabled) { background: rgba(79,142,247,.15); }
+.btn-rerun:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Log console ──────────────────────────────────────── */
+.log-console {
+  background: #0b0b12;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 10px 16px 14px;
+}
+.log-line { color: #9898be; padding: 1px 0; white-space: pre-wrap; word-break: break-all; }
+.log-error { color: var(--red); }
+
+/* ── Video ────────────────────────────────────────────── */
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.video-player {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.video-el {
+  width: 100%;
+  border-radius: 6px;
+  background: #000;
+}
+
+.video-actions { display: flex; justify-content: flex-end; }
+
+.btn-download {
+  background: var(--green);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 20px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.btn-download:hover { opacity: 0.85; }

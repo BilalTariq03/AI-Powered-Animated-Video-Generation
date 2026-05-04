@@ -19,6 +19,21 @@ WAV2LIP_DIR = os.path.join(THIS_DIR, "Wav2Lip")
 CKPT_DIR    = os.path.join(WAV2LIP_DIR, "checkpoints")
 
 
+def _crop_face_region(image_path: str) -> str:
+    """Return a version of the portrait cropped to the upper 65% (face area).
+    Saves alongside the original as *_facecrop.png; returns original on error."""
+    try:
+        from PIL import Image
+        img  = Image.open(image_path)
+        w, h = img.size
+        cropped = img.crop((0, 0, w, int(h * 0.65)))
+        out = image_path.replace(".png", "_facecrop.png")
+        cropped.save(out)
+        return out
+    except Exception:
+        return image_path
+
+
 def _find_checkpoint() -> str | None:
     """Return the first .pth / .pt file in checkpoints/ that is >10 MB."""
     if not os.path.isdir(CKPT_DIR):
@@ -65,6 +80,10 @@ def generate(face_image_path: str, audio_mp3_path: str,
     if not checkpoint:
         return False
 
+    # Crop portrait to upper 65% so the face fills more of the frame,
+    # improving S3FD detection accuracy on full-body AI portraits.
+    face_image_path = _crop_face_region(face_image_path)
+
     # Wav2Lip runs from its own directory — all paths must be absolute
     face_image_path = os.path.abspath(face_image_path)
     audio_wav       = os.path.abspath(audio_wav)
@@ -82,7 +101,7 @@ def generate(face_image_path: str, audio_mp3_path: str,
                 "--static",          "True",
                 "--fps",             "24",
                 "--resize_factor",   "1",
-                "--nosmooth",
+                "--pads",            "0", "15", "0", "0",
             ],
             cwd=WAV2LIP_DIR,
             capture_output=True,

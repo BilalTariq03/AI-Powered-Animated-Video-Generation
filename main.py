@@ -179,7 +179,7 @@ def get_user_input() -> WritersRoomState:
         )
 
 
-def main():
+def main(prompt: str | None = None, auto: bool = False):
     print_banner()
     from config import GROQ_API_KEY
     if not GROQ_API_KEY:
@@ -190,7 +190,17 @@ def main():
     for f in glob.glob(os.path.join(IMAGES_DIR, "*.png")):
         os.remove(f)
 
-    initial_state = get_user_input()
+    if auto and prompt:
+        print(f"[Auto mode] Prompt: {prompt}")
+        initial_state = WritersRoomState(
+            input_mode="auto", user_prompt=prompt, raw_script="",
+            script={}, validated=False, validation_errors=[],
+            hitl_approved=False, characters=[], images=[],
+            status="init", error=None, iteration=0
+        )
+    else:
+        initial_state = get_user_input()
+
     print(f"\nStarting LangGraph workflow in '{initial_state['input_mode']}' mode...")
     print("=" * 60)
 
@@ -214,4 +224,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    ap = argparse.ArgumentParser(description="Phase 1 — Story Generator")
+    ap.add_argument("--prompt", type=str, default=None, help="Story prompt (auto mode)")
+    ap.add_argument("--auto",   action="store_true",   help="Skip interactive HITL (for web use)")
+    args = ap.parse_args()
+    main(prompt=args.prompt, auto=args.auto)

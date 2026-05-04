@@ -158,8 +158,14 @@ class ScriptwriterAgent(BaseAgent):
     def _all_character_names(self, parsed: dict) -> list:
         names = set()
         for scene in parsed.get("scenes", []):
-            for name in scene.get("characters", []):
-                names.add(name)
+            for entry in scene.get("characters", []):
+                # LLM sometimes returns {"name": "..."} instead of plain string
+                if isinstance(entry, dict):
+                    name = entry.get("name") or entry.get("character") or str(entry)
+                else:
+                    name = str(entry)
+                if name:
+                    names.add(name)
         return list(names)
 
     def _enrich(self, parsed: dict, story_meta: dict, original_prompt: str) -> dict:
@@ -194,13 +200,33 @@ class ScriptwriterAgent(BaseAgent):
         total_dur = sum(s.get("duration_seconds", 30) for s in scenes)
         story["estimated_duration_seconds"] = total_dur or 150
 
-        for scene in scenes:
+        for scene_idx, scene in enumerate(scenes):
+            # Coerce scene_id to int (LLM sometimes returns "1" instead of 1)
+            try:
+                scene["scene_id"] = int(str(scene.get("scene_id", scene_idx + 1)).strip())
+            except (ValueError, TypeError):
+                scene["scene_id"] = scene_idx + 1
+
+            # Normalize characters to plain strings — LLM sometimes returns dicts
+            def _to_name(c) -> str:
+                if isinstance(c, dict):
+                    return str(c.get("name") or c.get("character") or next(iter(c.values()), "Character"))
+                return str(c) if c else "Character"
+            scene["characters"] = [_to_name(c) for c in scene.get("characters", []) if c]
+
+            # Normalize dialogue lines (LLM can produce empty strings)
+            for dlg in scene.get("dialogue", []):
+                if not dlg.get("line", "").strip():
+                    dlg["line"] = "Understood."
+
+            # Clamp duration to Pydantic limit
+            scene["duration_seconds"] = min(int(scene.get("duration_seconds", 30)), 120)
+
             scene.setdefault("duration_seconds", 30)
             tod = scene.get("time_of_day", "").upper()
             scene["time_of_day"] = tod if tod in valid_times else "DAY"
 
             # Preserve outline-assigned mood; only fall back if truly missing/invalid
-            scene_idx = scenes.index(scene)
             mood_arc  = ["mysterious", "tense", "dramatic", "tense", "melancholic"]
             if scene.get("mood") not in valid_moods:
                 scene["mood"] = mood_arc[scene_idx % len(mood_arc)]
@@ -222,7 +248,28 @@ class ScriptwriterAgent(BaseAgent):
                 dlg.setdefault("visual_cue", "Medium shot.")
 
             if len(dialogue) < 2:
-                speaker = dialogue[0]["speaker"] if dialogue else (scene.get("characters") or ["Character"])[0]
-                dialogue.append({"speaker": speaker, "line": "...", "emotion": "neutral", "visual_cue": "Wide shot."})
+                raw_chars = scene.get("characters") or ["Character"]
+                chars = [
+                    (c.get("name") or c.get("character") or "Character") if isinstance(c, dict) else str(c)
+                    for c in raw_chars
+                ]
+                # Use a different character for the second line if possible
+                speaker = dialogue[0]["speaker"] if dialogue else chars[0]
+                alt     = next((c for c in chars if c != speaker), speaker)
+                fallback_lines = [
+                    "This changes everything.",
+                    "We need to move now.",
+                    "I understand.",
+                    "What does this mean?",
+                    "Stay focused.",
+                ]
+                import hashlib
+                idx  = int(hashlib.md5(speaker.encode()).hexdigest(), 16) % len(fallback_lines)
+                dialogue.append({
+                    "speaker": alt,
+                    "line":    fallback_lines[idx],
+                    "emotion": "neutral",
+                    "visual_cue": "Wide shot.",
+                })
 
         return parsed

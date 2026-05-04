@@ -145,20 +145,38 @@ class VideoGenerationAgent:
         return paths
 
     def _hf_generate(self, prompt: str, save_path: str) -> str | None:
+        import io, urllib.parse, requests
+        full = (f"{prompt}, cinematic background, no people, "
+                "no characters, highly detailed, wide angle")
+
+        # ── Primary: Pollinations.ai (free, no key needed) ────────────────
+        try:
+            encoded = urllib.parse.quote(full)
+            url     = (f"https://image.pollinations.ai/prompt/{encoded}"
+                       f"?width={VIDEO_W}&height={VIDEO_H}&model=flux&nologo=true")
+            resp = requests.get(url, timeout=90)
+            if resp.status_code == 200 and resp.content:
+                img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+                img.resize((VIDEO_W, VIDEO_H), Image.LANCZOS).save(save_path)
+                return save_path
+            print(f"[VideoAgent] Pollinations returned {resp.status_code}")
+        except Exception as e:
+            print(f"[VideoAgent] Pollinations error: {e}")
+
+        # ── Fallback: HuggingFace (requires HF_API_KEY) ───────────────────
         if not HF_API_KEY:
             return None
-        import io, time, requests
+        import time
         url     = f"https://router.huggingface.co/hf-inference/models/{HF_IMAGE_MODEL}"
         headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-        payload = {"inputs": (f"{prompt}, cinematic background, no people, "
-                               "no characters, highly detailed, wide angle")}
         try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=120)
+            resp = requests.post(url, headers=headers, json={"inputs": full}, timeout=120)
             if resp.status_code == 503:
                 wait = resp.json().get("estimated_time", 30) if resp.content else 30
                 time.sleep(min(wait, 60))
-                resp = requests.post(url, headers=headers, json=payload, timeout=120)
+                resp = requests.post(url, headers=headers, json={"inputs": full}, timeout=120)
             if resp.status_code != 200:
+                print(f"[VideoAgent] HF API returned {resp.status_code}: {resp.text[:200]}")
                 return None
             img = Image.open(io.BytesIO(resp.content)).convert("RGB")
             img.resize((VIDEO_W, VIDEO_H), Image.LANCZOS).save(save_path)
@@ -320,15 +338,34 @@ class VideoGenerationAgent:
                     tl = Image.new("RGBA", char_pil.size, tint)
                     char_pil = Image.alpha_composite(char_pil.convert("RGBA"), tl)
 
-            # Wav2Lip frame override when speaking
+            # Wav2Lip frame override when speaking — overlay animated face on portrait
             if active and "lipsync_frames" in active:
-                frames    = active["lipsync_frames"]
-                t_in_seg  = t - active["start"]
-                fidx      = min(int(t_in_seg * FPS), len(frames) - 1)
+                frames   = active["lipsync_frames"]
+                t_in_seg = t - active["start"]
+                fidx     = min(int(t_in_seg * FPS), len(frames) - 1)
                 lip_frame = Image.fromarray(frames[fidx]).convert("RGBA")
-                # Resize lipsync frame to portrait size
-                lip_frame = lip_frame.resize((CHAR_W, CHAR_H), Image.LANCZOS)
-                char_pil  = lip_frame
+
+                # Base: full portrait letterboxed into CHAR_W × CHAR_H
+                orig_w, orig_h = char_pil.size
+                fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1))
+                base_w = int(orig_w * fit_ratio)
+                base_h = int(orig_h * fit_ratio)
+                base = char_pil.resize((base_w, base_h), Image.LANCZOS)
+                canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
+                bx = (CHAR_W - base_w) // 2
+                by = (CHAR_H - base_h) // 2
+                canvas.paste(base, (bx, by), base)
+
+                # Overlay lipsync frame on face region (upper 65% of portrait area)
+                face_h_limit = int(base_h * 0.65)
+                lf_w, lf_h = lip_frame.size
+                lf_ratio = min(base_w / max(lf_w, 1), face_h_limit / max(lf_h, 1))
+                lf_nw = int(lf_w * lf_ratio)
+                lf_nh = int(lf_h * lf_ratio)
+                lip_frame = lip_frame.resize((lf_nw, lf_nh), Image.LANCZOS)
+                lx = bx + (base_w - lf_nw) // 2
+                canvas.paste(lip_frame, (lx, by), lip_frame)
+                char_pil = canvas
             else:
                 # Body animation: breathing + talking pulse
                 breathe = 1.0 + 0.015 * np.sin(2 * np.pi * 0.2 * t)
@@ -342,8 +379,11 @@ class VideoGenerationAgent:
                     bob   = 0
                     scale = breathe
 
-                pw = int(CHAR_W * scale)
-                ph = int(CHAR_H * scale)
+                # Aspect-ratio-preserving resize (letterbox into CHAR_W × CHAR_H)
+                orig_w, orig_h = char_pil.size
+                fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1)) * scale
+                pw = int(orig_w * fit_ratio)
+                ph = int(orig_h * fit_ratio)
                 char_pil = char_pil.resize((pw, ph), Image.LANCZOS)
 
                 # Pad/crop back to CHAR_W x CHAR_H so position stays fixed
@@ -352,8 +392,6 @@ class VideoGenerationAgent:
                 oy = (CHAR_H - ph) // 2 + bob
                 canvas.paste(char_pil, (ox, oy), char_pil)
                 char_pil = canvas
-
-            char_pil = char_pil.resize((CHAR_W, CHAR_H), Image.LANCZOS)
 
             # Glow border: blue when speaking, grey when idle
             border_col = (100, 180, 255, 190) if active else (160, 160, 160, 110)
@@ -376,7 +414,15 @@ class VideoGenerationAgent:
         # Other characters (non-speaking) shown small + dimmed on right edge
         others = [n for n in scene_char_imgs if n != active_speaker]
         for i, name in enumerate(others[:3]):
-            other_pil  = scene_char_imgs[name].resize((SIDE_W, SIDE_H), Image.LANCZOS)
+            raw = scene_char_imgs[name]
+            ow, oh = raw.size
+            side_ratio = min(SIDE_W / max(ow, 1), SIDE_H / max(oh, 1))
+            sw = int(ow * side_ratio)
+            sh = int(oh * side_ratio)
+            side_canvas = Image.new("RGBA", (SIDE_W, SIDE_H), (0, 0, 0, 0))
+            side_img = raw.resize((sw, sh), Image.LANCZOS)
+            side_canvas.paste(side_img, ((SIDE_W - sw) // 2, (SIDE_H - sh) // 2), side_img)
+            other_pil = side_canvas
             # Dim non-speaking characters
             dimmed = Image.new("RGBA", other_pil.size, (0, 0, 0, 0))
             dimmed.paste(other_pil, mask=other_pil)

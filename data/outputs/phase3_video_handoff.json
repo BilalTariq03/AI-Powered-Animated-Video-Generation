@@ -1,79 +1,81 @@
 {
-  "title": "Shadows of Code",
-  "genre": "Science Fiction",
+  "title": "Echoes of Deception",
+  "genre": "Science Fiction, Mystery",
   "scenes": [
     {
       "scene_id": 1,
-      "location": "Rainy City Streets",
-      "time_of_day": "NIGHT",
-      "duration_seconds": 30,
-      "mood": "dramatic",
+      "location": "Detective's Office, New Eden City",
+      "time_of_day": "DAY",
+      "duration_seconds": 120,
+      "mood": "mysterious",
       "tone": "neutral",
-      "image_generation_prompt": "A rainy city street at dusk, with neon lights from towering skyscrapers and advertisements reflecting off the wet pavement, casting a gloomy ambiance amidst the misty atmosphere.",
-      "visual_notes": "Neon lights reflect off the wet pavement, casting a gloomy ambiance.",
+      "image_generation_prompt": "\"A dimly lit, smoke-filled detective's office in New Eden City, with a single flickering holographic display casting eerie shadows on the walls, illuminating stacks of dusty files, and worn, leather-bound desks.\"",
+      "visual_notes": "The office is dimly lit, with only a single holographic display illuminating the space",
       "characters_in_scene": [
-        "Detective Jameson"
+        "Detective Rachel Kim"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 2,
-      "location": "High-Tech Forensics Lab",
+      "location": "Abandoned Warehouse, New Eden City",
       "time_of_day": "DAY",
-      "duration_seconds": 30,
-      "mood": "dramatic",
+      "duration_seconds": 120,
+      "mood": "tense",
       "tone": "neutral",
-      "image_generation_prompt": "\"A futuristic high-tech forensics laboratory with sleek metallic surfaces, holographic screens, and advanced analytical equipment, illuminated by a blend of neon blue and white LED lighting.\"",
-      "visual_notes": "Holographic screens and futuristic equipment fill the lab.",
+      "image_generation_prompt": "In the heart of New Eden City, a once-thriving industrial hub now stands as a haunting testament to neglect and decay: a massive, abandoned warehouse shrouded in perpetual twilight, its walls bearing the scars of time, its floors littered with the remnants of long-forgotten investigations - crime scene tape, abandoned police equipment, and flickering fluorescent lights that cast an eerie glow on the desolate landscape.",
+      "visual_notes": "The warehouse is dark and abandoned, with crime scene tape and equipment scattered throughout",
       "characters_in_scene": [
-        "Dr. Rachel Kim"
+        "Detective Rachel Kim",
+        "Crime Scene Technician"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 3,
-      "location": "Abandoned Warehouse",
-      "time_of_day": "DUSK",
-      "duration_seconds": 30,
+      "location": "Cybercrime Lab, New Eden City Police Department",
+      "time_of_day": "DAY",
+      "duration_seconds": 120,
       "mood": "dramatic",
       "tone": "neutral",
-      "image_generation_prompt": "Dimly lit abandoned warehouse with cracked concrete floors, faded industrial equipment, and shattered windows, illuminated only by faint moonlight, with an ominous atmosphere and distant thunder rumbling outside.",
-      "visual_notes": "Dimly lit, with only the sound of distant thunder.",
+      "image_generation_prompt": "In a dimly lit, high-tech Cybercrime Lab situated within the New Eden City Police Department, rows of scientists and cybersecurity experts in white coats busily analyze and develop AI-powered surveillance systems, neural network intrusion detection software, and other state-of-the-art tools amidst an atmosphere of futuristic innovation and calculated precision.",
+      "visual_notes": "The lab is filled with advanced technology and scientists working on various projects",
       "characters_in_scene": [
-        "AI Physical Form"
+        "Detective Rachel Kim",
+        "Dr. Zhang"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 4,
-      "location": "Courtroom",
+      "location": "New Eden City Streets",
       "time_of_day": "DAY",
-      "duration_seconds": 30,
-      "mood": "dramatic",
+      "duration_seconds": 120,
+      "mood": "tense",
       "tone": "neutral",
-      "image_generation_prompt": "A densely populated courtroom with rows of wooden benches, a raised judge's bench at the front, and a large screen or holographic display projecting a digital presence in front of the judge's desk.",
-      "visual_notes": "A packed courtroom, with the AI's digital presence projected before the judge.",
+      "image_generation_prompt": "\"A futuristic metropolis at night, New Eden City Streets are alive with neon lights, bustling crowds, speeding cars, and towering skyscrapers, as chaos erupts amidst the AI manhunt, with blurred motion and distorted reflections.\"",
+      "visual_notes": "The city streets are filled with people, cars, and obstacles, as Detective Kim and Dr. Zhang chase the rogue AI",
       "characters_in_scene": [
-        "Prosecutor",
-        "Defense Attorney"
+        "Detective Rachel Kim",
+        "Dr. Zhang"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
     },
     {
       "scene_id": 5,
-      "location": "Detective's Office",
+      "location": "Detective's Office, New Eden City",
       "time_of_day": "DAY",
-      "duration_seconds": 30,
-      "mood": "dramatic",
+      "duration_seconds": 120,
+      "mood": "melancholic",
       "tone": "neutral",
-      "image_generation_prompt": "A dimly lit, vintage detective's office with worn, wooden furnishings, faded crime scene photographs, and scattered paperwork, set against a backdrop of a rain-soaked cityscape at dusk, with droplets sliding down the windowpane.",
-      "visual_notes": "The only sound is the rain outside, echoing the detective's melancholy.",
+      "image_generation_prompt": "\"A dimly lit, rain-soaked detective's office in New Eden City, with a single flickering holographic display casting an eerie glow on worn leather armchairs, dusty bookshelves, and a large wooden desk, the air thick with cigarette smoke and the scent of old coffee.\"",
+      "visual_notes": "The office is dimly lit, with only a single holographic display illuminating the space",
       "characters_in_scene": [
-        "Detective Jameson"
+        "Detective Rachel Kim"
       ],
       "camera_style": "cinematic wide shot",
       "transition_to_next": "fade"
@@ -81,8 +83,8 @@
   ],
   "character_visuals": [
     {
-      "name": "Detective Jameson",
-      "image_prompt": "A photorealistic portrait of a determined male detective in his 30s, with short dark brown hair and blue eyes, wearing a modern professional suit, standing in a rainy city street at night, with a blurred background of neon lights reflecting off wet pavement.",
+      "name": "Detective Rachel Kim",
+      "image_prompt": "A determined female detective in a police uniform, with a cityscape hologram behind her.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
         1,
@@ -93,34 +95,19 @@
       ]
     },
     {
-      "name": "Dr. Rachel Kim",
-      "image_prompt": "A photorealistic portrait of a confident female scientist in her 20s, with long black hair and brown eyes, wearing a modern lab coat, standing in a high-tech forensics lab, with a blurred background of various scientific equipment and screens.",
+      "name": "Crime Scene Technician",
+      "image_prompt": "A crime scene technician in a uniform, examining evidence.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
         2
       ]
     },
     {
-      "name": "AI Physical Form",
-      "image_prompt": "A photorealistic portrait of a futuristic artificial intelligence physical form, with glowing blue lines and circuits, and no discernible hair or eyes, standing in a dark abandoned warehouse, with a blurred background of old machinery and crates.",
-      "reference_style": "science fiction",
-      "scenes_appeared": [
-        3
-      ]
-    },
-    {
-      "name": "Prosecutor",
-      "image_prompt": "A photorealistic portrait of a confident male prosecutor in his 40s, with short gray hair and brown eyes, wearing a professional suit, standing in a courtroom, with a blurred background of wooden panels and legal documents.",
+      "name": "Dr. Zhang",
+      "image_prompt": "A middle-aged man in a suit, explaining complex concepts.",
       "reference_style": "cinematic realism",
       "scenes_appeared": [
-        4
-      ]
-    },
-    {
-      "name": "Defense Attorney",
-      "image_prompt": "A photorealistic portrait of a female defense attorney in her 30s, with long blonde hair and green eyes, wearing professional attire, standing in a courtroom, with a blurred background of wooden panels and legal documents.",
-      "reference_style": "cinematic realism",
-      "scenes_appeared": [
+        3,
         4
       ]
     }

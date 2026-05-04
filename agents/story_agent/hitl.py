@@ -5,6 +5,7 @@ Human-in-the-Loop checkpoint — pauses for human script approval.
 """
 
 import json
+import os
 from typing import Any, Dict
 
 from agents.base import BaseAgent
@@ -15,6 +16,11 @@ class HITLAgent(BaseAgent):
     tool_tags = []
 
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        # Web/CI mode: skip interactive prompt
+        if os.environ.get("HITL_AUTO_APPROVE") == "1":
+            print(f"[{self.name}] Auto-approve mode: script accepted.")
+            return {**state, "hitl_approved": True, "status": "approved"}
+
         print(f"\n{'='*60}")
         print(f"[{self.name}] HUMAN REVIEW CHECKPOINT")
         print(f"{'='*60}")

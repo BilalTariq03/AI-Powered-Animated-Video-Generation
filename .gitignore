@@ -9,12 +9,16 @@ venv/
 # Vector DB
 .chroma_db/
 
+/data/outputs/audio
+
 # Generated audio (large binary outputs)
 data/outputs/audio/bgm/
 data/outputs/audio/dialogue/
 
-# Generated images (AI-generated PNGs)
+# Generated images (AI-generated PNGs) and Wav2Lip face crop temps
 data/outputs/images/
+*_facecrop.png
+
 
 # Generated video (all MP4/AVI outputs)
 data/outputs/video/
@@ -32,3 +36,4 @@ temp/result.avi
 temp/temp.wav
 temp/faulty_frame.jpg
 
+node_modules

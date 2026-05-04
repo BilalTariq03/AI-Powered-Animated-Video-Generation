@@ -6,9 +6,11 @@ Base class for all agents. Provides LLM access, MCP discovery, JSON parsing.
 
 import json
 import re
+import time
 from typing import Any, Dict, List, Optional
 
 from groq import Groq
+from groq import RateLimitError
 
 from config import GROQ_API_KEY, GROQ_MODEL
 from mcp.tool_registry import mcp, MCPToolResult
@@ -34,17 +36,34 @@ class BaseAgent:
             self.tools = self._discover_tools()
         return mcp.invoke(tool_name, inputs)
 
-    def chat(self, system: str, user: str, temperature: float = 0.7) -> str:
-        response = self.llm.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user",   "content": user}
-            ],
-            temperature=temperature,
-            max_tokens=4096
-        )
-        return response.choices[0].message.content.strip()
+    def chat(self, system: str, user: str, temperature: float = 0.7,
+             _retries: int = 4) -> str:
+        for attempt in range(_retries):
+            try:
+                response = self.llm.chat.completions.create(
+                    model=GROQ_MODEL,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user",   "content": user}
+                    ],
+                    temperature=temperature,
+                    max_tokens=4096
+                )
+                return response.choices[0].message.content.strip()
+            except RateLimitError as e:
+                if attempt == _retries - 1:
+                    raise
+                # Parse suggested wait from error message, default 15s
+                msg   = str(e)
+                wait  = 15
+                import re as _re
+                m = _re.search(r'try again in (\d+(?:\.\d+)?)s', msg)
+                if m:
+                    wait = float(m.group(1)) + 2
+                print(f"[{self.name}] Rate limited — waiting {wait:.0f}s (attempt {attempt+1}/{_retries})")
+                time.sleep(wait)
+        # unreachable, but satisfies type checker
+        raise RuntimeError("chat() exhausted retries")
 
     def parse_json(self, text: str) -> Optional[Any]:
         text = text.strip()

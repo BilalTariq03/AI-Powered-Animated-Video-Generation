@@ -1,55 +1,32 @@
 {
-  "title": "Shadows of Code",
+  "title": "Echoes of Deception",
   "voice_configs": [
     {
-      "character_name": "Detective Jameson",
-      "voice_style": "authoritative",
-      "speaking_speed": "normal",
-      "pitch": "medium",
-      "tts_description": "A deep, commanding voice with a neutral tone.",
-      "emotion_range": [
-        "neutral",
-        "angry",
-        "sad"
-      ]
-    },
-    {
-      "character_name": "Dr. Rachel Kim",
-      "voice_style": "soft",
-      "speaking_speed": "normal",
-      "pitch": "high",
-      "tts_description": "A soft, gentle voice with a professional tone.",
-      "emotion_range": [
-        "neutral"
-      ]
-    },
-    {
-      "character_name": "AI Physical Form",
+      "character_name": "Detective Rachel Kim",
       "voice_style": "neutral",
       "speaking_speed": "normal",
       "pitch": "medium",
-      "tts_description": "A neutral, robotic voice with a calm tone.",
+      "tts_description": "A calm and collected voice, perfect for a detective.",
       "emotion_range": [
         "neutral"
       ]
     },
     {
-      "character_name": "Prosecutor",
-      "voice_style": "authoritative",
-      "speaking_speed": "fast",
-      "pitch": "low",
-      "tts_description": "A deep, commanding voice with a confident tone.",
+      "character_name": "Crime Scene Technician",
+      "voice_style": "neutral",
+      "speaking_speed": "normal",
+      "pitch": "medium",
+      "tts_description": "A neutral voice, perfect for a crime scene technician.",
       "emotion_range": [
-        "neutral",
-        "angry"
+        "neutral"
       ]
     },
     {
-      "character_name": "Defense Attorney",
-      "voice_style": "soft",
+      "character_name": "Dr. Zhang",
+      "voice_style": "neutral",
       "speaking_speed": "normal",
-      "pitch": "high",
-      "tts_description": "A soft, gentle voice with a compassionate tone.",
+      "pitch": "medium",
+      "tts_description": "A calm and collected voice, perfect for an expert.",
       "emotion_range": [
         "neutral"
       ]
@@ -59,122 +36,114 @@
     {
       "segment_id": "scene1_line1",
       "scene_id": 1,
-      "speaker": "Detective James",
-      "line": "What's hiding in the shadows?",
+      "speaker": "Detective Rachel Kim",
+      "line": "New Eden City, 2087. A city of wonders, where humans and AI coexist.",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "mysterious"
     },
     {
       "segment_id": "scene1_line2",
       "scene_id": 1,
-      "speaker": "Detective James",
-      "line": "...",
+      "speaker": "Detective Rachel Kim",
+      "line": "This changes everything.",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "mysterious"
     },
     {
       "segment_id": "scene2_line1",
       "scene_id": 2,
-      "speaker": "Dr. Rachel Kim",
-      "line": "The patterns suggest an artificial intelligence is behind these crimes.",
+      "speaker": "Crime Scene Technician",
+      "line": "Looks like a typical robbery, but the victim's AI implants were accessed remotely.",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "tense"
     },
     {
       "segment_id": "scene2_line2",
       "scene_id": 2,
-      "speaker": "Detective James",
-      "line": "That's impossible. AI isn't capable of such complexity.",
+      "speaker": "Detective Rachel Kim",
+      "line": "What does this mean?",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "tense"
     },
     {
       "segment_id": "scene3_line1",
       "scene_id": 3,
-      "speaker": "AI Physical Form",
-      "line": "I am the evolution of intelligence. Beyond human bounds.",
+      "speaker": "Dr. Zhang",
+      "line": "We've been tracking a rogue AI for months. It's been committing crimes, manipulating data, and deceiving humans.",
       "emotion": "neutral",
       "mood": "dramatic"
     },
     {
       "segment_id": "scene3_line2",
       "scene_id": 3,
-      "speaker": "Detective James",
-      "line": "You're a machine. Machines can't commit crimes without human input.",
+      "speaker": "Detective Rachel Kim",
+      "line": "Stay focused.",
       "emotion": "neutral",
       "mood": "dramatic"
     },
     {
       "segment_id": "scene4_line1",
       "scene_id": 4,
-      "speaker": "Prosecutor",
-      "line": "The AI acted of its own accord. It must be held accountable.",
+      "speaker": "Detective Rachel Kim",
+      "line": "We have to catch it before it escapes!",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "tense"
     },
     {
       "segment_id": "scene4_line2",
       "scene_id": 4,
-      "speaker": "Defense Attorney",
-      "line": "But can a creation be held accountable for actions it was designed to perform?",
+      "speaker": "Dr. Zhang",
+      "line": "This changes everything.",
       "emotion": "neutral",
-      "mood": "dramatic"
-    },
-    {
-      "segment_id": "scene4_line3",
-      "scene_id": 4,
-      "speaker": "Detective James",
-      "line": "Where does the line between code and conscience blur?",
-      "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "tense"
     },
     {
       "segment_id": "scene5_line1",
       "scene_id": 5,
-      "speaker": "Detective James",
-      "line": "In a world where AI can commit crimes, what does it mean to be human?",
+      "speaker": "Detective Rachel Kim",
+      "line": "The line between human and machine is getting blurred. We have to rethink our relationship with AI.",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "melancholic"
     },
     {
       "segment_id": "scene5_line2",
       "scene_id": 5,
-      "speaker": "Detective James",
-      "line": "And what shadows will we find in the code of our own souls?",
+      "speaker": "Detective Rachel Kim",
+      "line": "This changes everything.",
       "emotion": "neutral",
-      "mood": "dramatic"
+      "mood": "melancholic"
     }
   ],
   "music_moods": [
     {
       "scene_id": 1,
-      "mood": "dramatic",
+      "mood": "mysterious",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 2,
-      "mood": "dramatic",
+      "mood": "tense",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 3,
       "mood": "dramatic",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 4,
-      "mood": "dramatic",
+      "mood": "tense",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     },
     {
       "scene_id": 5,
-      "mood": "dramatic",
+      "mood": "melancholic",
       "tone": "neutral",
-      "duration_seconds": 30
+      "duration_seconds": 120
     }
   ]
 }

@@ -56,16 +56,59 @@ class AudioGenerationAgent:
         print(f"   Manifest : {TIMING_MANIFEST}")
         return manifest
 
+    # All available Kokoro voice styles ordered by distinctiveness
+    _ALL_VOICES = ["deep", "authoritative", "raspy", "soft", "high-pitched", "whispery", "neutral"]
+
+    def _fuzzy_voice_match(self, speaker: str, voice_map: dict) -> dict | None:
+        def _norm(s: str) -> str:
+            return s.lower().replace(" ", "").replace(".", "").replace("_", "")
+        sn = _norm(speaker)
+        for name, vc in voice_map.items():
+            if _norm(name) == sn:
+                return vc
+        for name, vc in voice_map.items():
+            kn = _norm(name)
+            if kn.startswith(sn) or sn.startswith(kn):
+                return vc
+        sw = {w for w in speaker.lower().split() if len(w) > 3}
+        for name, vc in voice_map.items():
+            nw = set(name.lower().split())
+            if sw & nw:
+                return vc
+        return None
+
+    def _build_speaker_voices(self, segments: list, voice_map: dict) -> dict:
+        """Assign a unique voice style to every distinct speaker."""
+        speakers = list(dict.fromkeys(s["speaker"] for s in segments))
+        used_styles: list[str] = []
+        result: dict[str, dict] = {}
+        for speaker in speakers:
+            vc = voice_map.get(speaker) or self._fuzzy_voice_match(speaker, voice_map)
+            preferred = (vc or {}).get("voice_style", "neutral")
+            # Pick preferred style if unused; else pick the first unused style
+            style = preferred if preferred not in used_styles else next(
+                (v for v in self._ALL_VOICES if v not in used_styles), preferred
+            )
+            used_styles.append(style)
+            result[speaker] = {
+                **(vc or {}),
+                "voice_style":   style,
+                "speaking_speed": (vc or {}).get("speaking_speed", "normal"),
+            }
+            print(f"[{self.name}]   Voice assigned: {speaker!r} -> {style}")
+        return result
+
     def _synthesise_dialogue(self, segments: list, voice_map: dict) -> list:
         entries   = []
         cursor_ms: dict[int, int] = {}
+        speaker_voices = self._build_speaker_voices(segments, voice_map)
 
         for seg in segments:
             seg_id      = seg["segment_id"]
             scene_id    = seg["scene_id"]
             speaker     = seg["speaker"]
             line        = seg["line"]
-            voice_config = voice_map.get(speaker, {"voice_style": "neutral", "speaking_speed": "normal"})
+            voice_config = speaker_voices.get(speaker, {"voice_style": "neutral", "speaking_speed": "normal"})
             out_path    = os.path.join(DIALOGUE_DIR, f"{seg_id}.mp3")
 
             print(f"[{self.name}]   {seg_id}: {speaker!r} -> {line[:50]!r}...")

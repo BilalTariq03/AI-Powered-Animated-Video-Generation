@@ -9,8 +9,9 @@ HF_API_KEY         = os.getenv("HF_API_KEY", "")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 
 # ── Model Settings ────────────────────────────────────────────────────────────
-GROQ_MODEL     = "llama-3.3-70b-versatile"
-HF_IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
+GROQ_MODEL = "llama-3.1-8b-instant"
+# llama-3.3-70b-versatile
+HF_IMAGE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
 
 # ── Directory Layout ──────────────────────────────────────────────────────────
 OUTPUT_DIR = "data/outputs"
