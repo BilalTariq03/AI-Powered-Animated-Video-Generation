@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw
 
 from config import (
     HF_API_KEY, HF_IMAGE_MODEL, IMAGES_DIR,
-    VIDEO_DIR, SCENES_DIR, FINAL_VIDEO,
+    VIDEO_DIR, SCENES_DIR, LIPSYNC_DIR, FINAL_VIDEO,
     PHASE3_HANDOFF, TIMING_MANIFEST,
 )
 
@@ -73,8 +73,12 @@ class VideoGenerationAgent:
         timing_by_scene = {s["scene_id"]: s for s in timing.get("scenes", [])}
         char_images     = self._resolve_char_images(handoff.get("character_visuals", []))
 
-        for d in (SCENES_DIR, IMAGES_DIR):
+        for d in (SCENES_DIR, LIPSYNC_DIR, IMAGES_DIR):
             os.makedirs(d, exist_ok=True)
+
+        from agents.video_agent import lip_sync
+        use_lipsync = lip_sync.is_available()
+        print(f"[VideoAgent] Wav2Lip: {'ENABLED' if use_lipsync else 'NOT SET UP (run setup_wav2lip.py)'}")
 
         print(f"[VideoAgent] Generating {len(handoff['scenes'])} scene backgrounds...")
         bg_paths = self._prepare_backgrounds(handoff["scenes"])
@@ -88,7 +92,7 @@ class VideoGenerationAgent:
             print(f"[VideoAgent] Rendering scene {sid}  ({duration:.1f}s)...")
             clip = self._render_scene(
                 scene, timing_scene, bg_paths.get(sid),
-                char_images, duration,
+                char_images, duration, use_lipsync,
             )
             clip = clip.fadein(FADE_DUR).fadeout(FADE_DUR)
 
@@ -192,16 +196,44 @@ class VideoGenerationAgent:
 
     def _render_scene(self, scene: dict, timing_scene: dict,
                       bg_path: str | None, char_images: dict,
-                      duration: float):
+                      duration: float, use_lipsync: bool = False):
         from moviepy.editor import VideoClip
+        from agents.video_agent import lip_sync
 
         segments    = timing_scene.get("dialogue_segments", [])
         bgm_file    = timing_scene.get("bgm_file", "")
+        scene_id    = scene["scene_id"]
         chars_in    = scene.get("characters_in_scene", [])
         scene_label = scene.get("location", "")
 
         timeline       = self._build_timeline(segments)
         show_subtitles = _load_edit_settings().get("show_subtitles", True)
+
+        # ── Pre-render Wav2Lip clips per segment ──────────────────────────
+        if use_lipsync:
+            print(f"[VideoAgent]   Running Wav2Lip on {len(timeline)} segments...")
+            for item in timeline:
+                speaker    = item["speaker"]
+                face_path  = self._find_char_image(speaker, char_images)
+                audio_path = item.get("audio_file", "")
+                if not face_path or not audio_path or not os.path.exists(audio_path):
+                    continue
+                # Skip if the character image contains no detectable face
+                if not lip_sync.has_face(face_path):
+                    continue
+                out_mp4 = os.path.join(
+                    LIPSYNC_DIR, f"scene{scene_id}_{item['segment_id']}.mp4"
+                )
+                if os.path.exists(out_mp4):
+                    print(f"[VideoAgent]     {item['segment_id']}: cached")
+                else:
+                    print(f"[VideoAgent]     {item['segment_id']}: generating...")
+                    lip_sync.generate(face_path, audio_path, out_mp4)
+
+                if os.path.exists(out_mp4):
+                    frames = lip_sync.load_frames(out_mp4)
+                    if frames:
+                        item["lipsync_frames"] = frames
 
         # ── Load and oversized background for Ken Burns ───────────────────
         bg_arr = self._load_bg(bg_path, scene)
@@ -309,16 +341,24 @@ class VideoGenerationAgent:
                     tl = Image.new("RGBA", char_pil.size, tint)
                     char_pil = Image.alpha_composite(char_pil.convert("RGBA"), tl)
 
-            # Static resize — letterbox into CHAR_W × CHAR_H, no animation
-            orig_w, orig_h = char_pil.size
-            fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1))
-            pw = int(orig_w * fit_ratio)
-            ph = int(orig_h * fit_ratio)
-            char_pil = char_pil.resize((pw, ph), Image.LANCZOS)
-
-            canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
-            canvas.paste(char_pil, ((CHAR_W - pw) // 2, (CHAR_H - ph) // 2), char_pil)
-            char_pil = canvas
+            # Wav2Lip frame override when speaking
+            if active and "lipsync_frames" in active:
+                frames   = active["lipsync_frames"]
+                t_in_seg = t - active["start"]
+                fidx     = min(int(t_in_seg * FPS), len(frames) - 1)
+                lip_frame = Image.fromarray(frames[fidx]).convert("RGBA")
+                lip_frame = lip_frame.resize((CHAR_W, CHAR_H), Image.LANCZOS)
+                char_pil  = lip_frame
+            else:
+                # Static resize — letterbox into CHAR_W × CHAR_H, no animation
+                orig_w, orig_h = char_pil.size
+                fit_ratio = min(CHAR_W / max(orig_w, 1), CHAR_H / max(orig_h, 1))
+                pw = int(orig_w * fit_ratio)
+                ph = int(orig_h * fit_ratio)
+                char_pil = char_pil.resize((pw, ph), Image.LANCZOS)
+                canvas = Image.new("RGBA", (CHAR_W, CHAR_H), (0, 0, 0, 0))
+                canvas.paste(char_pil, ((CHAR_W - pw) // 2, (CHAR_H - ph) // 2), char_pil)
+                char_pil = canvas
 
             # Glow border: blue when speaking, grey when idle
             border_col = (100, 180, 255, 190) if active else (160, 160, 160, 110)

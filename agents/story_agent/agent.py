@@ -49,7 +49,11 @@ The JSON must follow this exact schema:
 
 Rules:
 - Minimum 4 scenes, maximum 8 scenes.
-- Each scene must have at least 2 dialogue lines.
+- Each scene must have at least 2 dialogue lines from AT LEAST 2 DIFFERENT speakers.
+- Never have one character speak all the lines in a scene. Every scene is a conversation.
+- Each line must be specific to its scene context — NO generic filler lines like
+  "What does this mean?", "Understood.", "I see.", "Indeed.", "Interesting."
+- Each character's lines must reflect their unique personality and the specific events of that scene.
 - duration_seconds must be between 20 and 60.
 - time_of_day must be UPPERCASE: DAY, NIGHT, DAWN, or DUSK.
 - Output ONLY the JSON. No extra text or markdown.
@@ -57,7 +61,9 @@ Rules:
 
 STORY_SYSTEM = """
 You are a story analyst. Given a story prompt, return ONLY a JSON object with keys:
-"genre", "tone", "themes" (list), "protagonist_archetype", "conflict_type".
+"genre", "tone", "themes" (list), "protagonist_archetype", "conflict_type",
+"suggested_scenes" (integer 4-8, based on story complexity — simple one-act story = 4,
+epic multi-thread story = 8, typical drama = 5).
 Output ONLY JSON, no markdown.
 """
 
@@ -77,14 +83,16 @@ class ScriptwriterAgent(BaseAgent):
         print(f"[{self.name}] Interpreted: genre={story_meta.get('genre','?')}, tone={story_meta.get('tone','?')}")
 
         print(f"[{self.name}] [Reasoning 2/5] Decomposing into scene outline...")
-        # Assign a distinct mood to each scene position so BGM varies across the story
-        mood_arc = ["mysterious", "tense", "dramatic", "tense", "melancholic"]
+        n_scenes = max(4, min(8, int(story_meta.get("suggested_scenes", 5))))
+        mood_arc = self._build_mood_arc(n_scenes)
         outline_prompt = (
             f"Story prompt: {prompt}\nGenre: {story_meta.get('genre','')}, "
             f"Tone: {story_meta.get('tone','')}\nThemes: {story_meta.get('themes','')}\n\n"
-            "Return ONLY a JSON array of exactly 5 scene outlines. "
+            f"Return ONLY a JSON array of exactly {n_scenes} scene outlines. "
             "Each object must have: "
-            '"scene_id", "location", "time_of_day", "mood", "tone", "duration_seconds", "purpose". '
+            '"scene_id", "location", "time_of_day", "mood", "tone", "duration_seconds", "purpose", "characters" (list of 2+ character names). '
+            "Every scene MUST include at least 2 different characters so dialogue is a conversation, not a monologue. "
+            "Vary the character combinations across scenes. "
             f"You MUST assign these moods in order: {mood_arc}. "
             "Do not repeat or reorder them."
         )
@@ -98,7 +106,7 @@ class ScriptwriterAgent(BaseAgent):
             f"{prompt}\n\nGenre: {story_meta.get('genre','')}, Tone: {story_meta.get('tone','')}\n"
             f"Scene outline: {scene_outline}"
         )
-        result   = self.invoke_tool("generate_script_segment", {"prompt": enriched_prompt, "num_scenes": 5})
+        result   = self.invoke_tool("generate_script_segment", {"prompt": enriched_prompt, "num_scenes": n_scenes})
         raw_text = result.data if result.success and result.data else None
 
         if not raw_text:
@@ -154,6 +162,18 @@ class ScriptwriterAgent(BaseAgent):
         print(f"[{self.name}] Complete. Story: '{parsed.get('story',{}).get('title')}' | "
               f"{len(parsed.get('scenes',[]))} scenes.")
         return {**state, "script": parsed, "status": "script_ready"}
+
+    @staticmethod
+    def _build_mood_arc(n: int) -> list:
+        """Return a mood arc of length n (4–8) with natural dramatic progression."""
+        arcs = {
+            4: ["mysterious", "tense", "dramatic", "melancholic"],
+            5: ["mysterious", "tense", "dramatic", "tense", "melancholic"],
+            6: ["mysterious", "tense", "hopeful", "dramatic", "tense", "melancholic"],
+            7: ["mysterious", "tense", "hopeful", "dramatic", "dramatic", "tense", "melancholic"],
+            8: ["mysterious", "tense", "hopeful", "dramatic", "dramatic", "romantic", "tense", "melancholic"],
+        }
+        return arcs.get(n, arcs[5])
 
     def _all_character_names(self, parsed: dict) -> list:
         names = set()
@@ -227,9 +247,9 @@ class ScriptwriterAgent(BaseAgent):
             scene["time_of_day"] = tod if tod in valid_times else "DAY"
 
             # Preserve outline-assigned mood; only fall back if truly missing/invalid
-            mood_arc  = ["mysterious", "tense", "dramatic", "tense", "melancholic"]
+            fallback_arc = self._build_mood_arc(len(scenes))
             if scene.get("mood") not in valid_moods:
-                scene["mood"] = mood_arc[scene_idx % len(mood_arc)]
+                scene["mood"] = fallback_arc[scene_idx % len(fallback_arc)]
             if scene.get("tone") not in valid_tones:
                 scene["tone"] = "neutral"
 
@@ -253,22 +273,29 @@ class ScriptwriterAgent(BaseAgent):
                     (c.get("name") or c.get("character") or "Character") if isinstance(c, dict) else str(c)
                     for c in raw_chars
                 ]
-                # Use a different character for the second line if possible
-                speaker = dialogue[0]["speaker"] if dialogue else chars[0]
-                alt     = next((c for c in chars if c != speaker), speaker)
-                fallback_lines = [
-                    "This changes everything.",
-                    "We need to move now.",
-                    "I understand.",
-                    "What does this mean?",
-                    "Stay focused.",
-                ]
-                import hashlib
-                idx  = int(hashlib.md5(speaker.encode()).hexdigest(), 16) % len(fallback_lines)
+                first_speaker = dialogue[0]["speaker"] if dialogue else chars[0]
+                first_line    = dialogue[0]["line"]    if dialogue else ""
+                # Pick a different character for the response line
+                responder = next((c for c in chars if c != first_speaker), chars[0])
+                # Generate a contextual response via LLM instead of a static fallback
+                ctx = (
+                    f"Scene: {scene.get('location','')} | Mood: {scene.get('mood','')} | "
+                    f"Action: {scene.get('action','')[:120]}\n"
+                    f"{first_speaker} just said: \"{first_line}\"\n"
+                    f"Write ONE short, specific response line for {responder}. "
+                    "Return ONLY the dialogue line, no speaker name, no quotes."
+                )
+                try:
+                    response_line = self.chat(
+                        "You are a screenplay writer. Write a single character's dialogue line.",
+                        ctx, temperature=0.8
+                    ).strip().strip('"').strip("'")
+                except Exception:
+                    response_line = "We have to keep moving."
                 dialogue.append({
-                    "speaker": alt,
-                    "line":    fallback_lines[idx],
-                    "emotion": "neutral",
+                    "speaker":    responder,
+                    "line":       response_line or "We have to keep moving.",
+                    "emotion":    "neutral",
                     "visual_cue": "Wide shot.",
                 })
 

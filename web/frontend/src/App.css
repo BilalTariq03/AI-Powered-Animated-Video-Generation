@@ -455,3 +455,106 @@ body {
 }
 .btn-revert:hover:not(:disabled) { background: rgba(224,82,82,.12); }
 .btn-revert:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── HITL Modal ────────────────────────────────────────── */
+.hitl-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+.hitl-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 720px; width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.hitl-title { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.hitl-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+.hitl-story-meta {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 14px 16px;
+  background: var(--surface2); border-radius: 8px;
+}
+.hitl-story-meta strong { font-size: 1.05rem; color: var(--text); }
+.hitl-tag {
+  display: inline-block;
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--accent);
+  background: rgba(79,142,247,.12);
+  padding: 2px 8px; border-radius: 4px; width: fit-content;
+}
+.hitl-synopsis { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; }
+.hitl-scenes { display: flex; flex-direction: column; gap: 10px; }
+.hitl-scene {
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.hitl-scene-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hitl-scene-num { font-size: 0.75rem; font-weight: 700; color: var(--accent); }
+.hitl-scene-loc { font-size: 0.85rem; color: var(--text); flex: 1; }
+.hitl-mood {
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .05em; padding: 2px 8px; border-radius: 4px;
+}
+.hitl-mood-dramatic  { background: rgba(224,82,82,.15);  color: #e05252; }
+.hitl-mood-tense     { background: rgba(79,142,247,.15); color: #4f8ef7; }
+.hitl-mood-mysterious{ background: rgba(150,80,220,.15); color: #a060dd; }
+.hitl-mood-hopeful   { background: rgba(62,207,110,.15); color: #3ecf6e; }
+.hitl-mood-melancholic{background: rgba(120,120,180,.15);color: #8888cc; }
+.hitl-mood-comedic   { background: rgba(240,160,51,.15); color: #f0a033; }
+.hitl-mood-romantic  { background: rgba(220,80,130,.15); color: #dc5082; }
+.hitl-mood-fantasy   { background: rgba(130,60,200,.15); color: #9040c8; }
+.hitl-chars { font-size: 0.78rem; color: var(--text-muted); }
+.hitl-dialogue { display: flex; flex-direction: column; gap: 4px; }
+.hitl-line { font-size: 0.83rem; display: flex; gap: 6px; }
+.hitl-speaker { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.hitl-text { color: var(--text-muted); font-style: italic; }
+.hitl-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 4px;
+}
+.hitl-reject-form { display: flex; flex-direction: column; gap: 10px; }
+.hitl-reject-label { font-size: 0.88rem; color: var(--text-muted); }
+.hitl-reject-input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text);
+  font-family: inherit; font-size: 0.9rem;
+  padding: 10px 12px; resize: vertical; min-height: 80px;
+}
+.hitl-reject-input:focus { outline: none; border-color: var(--accent); }
+.btn-hitl-approve {
+  background: var(--green); border: none; border-radius: 6px;
+  color: #0e1a14; cursor: pointer;
+  font-size: 0.9rem; font-weight: 700;
+  padding: 10px 22px; transition: background 0.2s;
+}
+.btn-hitl-approve:hover:not(:disabled) { background: #52e080; }
+.btn-hitl-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-hitl-reject {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-muted); cursor: pointer;
+  font-size: 0.9rem; padding: 10px 22px; transition: border-color 0.2s, color 0.2s;
+}
+.btn-hitl-reject:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+.btn-hitl-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-hitl-back {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-muted); cursor: pointer;
+  font-size: 0.9rem; padding: 10px 18px; transition: border-color 0.2s;
+}
+.btn-hitl-back:hover:not(:disabled) { border-color: var(--text-muted); }
+.btn-hitl-regenerate {
+  background: var(--amber); border: none; border-radius: 6px;
+  color: #1a1200; cursor: pointer;
+  font-size: 0.9rem; font-weight: 700;
+  padding: 10px 22px; transition: background 0.2s;
+}
+.btn-hitl-regenerate:hover:not(:disabled) { background: #ffb84d; }
+.btn-hitl-regenerate:disabled { opacity: 0.5; cursor: not-allowed; }

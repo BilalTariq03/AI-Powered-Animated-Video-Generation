@@ -87,9 +87,17 @@ async def _run_phase(phase: int, prompt: str) -> bool:
     _emit({"type": "phase_start", "phase": phase, "label": PHASE_LABELS[phase]})
 
     cmd = PHASE_CMDS[phase](prompt)
-    env = {**os.environ, "HITL_AUTO_APPROVE": "1", "PYTHONUNBUFFERED": "1"}
+    env = {**os.environ, "HITL_WEB_MODE": "1", "PYTHONUNBUFFERED": "1"}
 
     def _log(line: str):
+        # Intercept HITL sentinel — forward script summary to frontend
+        if line.startswith("[HITL_WAITING] "):
+            try:
+                summary = json.loads(line[len("[HITL_WAITING] "):])
+                _emit({"type": "hitl_waiting", "script": summary})
+            except Exception:
+                pass
+            return   # don't add to phase logs
         _job["phases"][phase]["logs"].append(line)
         _emit({"type": "log", "phase": phase, "message": line})
 
@@ -273,6 +281,28 @@ async def get_video():
 
 @app.get("/api/health")
 async def health():
+    return {"ok": True}
+
+
+# ── HITL routes ───────────────────────────────────────────────────────────────
+
+class HITLRespondReq(BaseModel):
+    action: str        # "approve" or "regenerate"
+    prompt: str = ""   # new story prompt (only used when action == "regenerate")
+
+
+@app.post("/api/hitl/respond")
+async def hitl_respond(req: HITLRespondReq):
+    """Write the user's HITL decision so the paused Phase 1 subprocess can continue."""
+    if req.action not in ("approve", "regenerate"):
+        raise HTTPException(400, "action must be 'approve' or 'regenerate'")
+
+    hitl_path = os.path.join(PROJECT_ROOT, "data", "outputs", "hitl_response.json")
+    os.makedirs(os.path.dirname(hitl_path), exist_ok=True)
+    with open(hitl_path, "w", encoding="utf-8") as f:
+        json.dump({"action": req.action, "prompt": req.prompt}, f)
+
+    _emit({"type": "hitl_responded", "action": req.action})
     return {"ok": True}
 
 

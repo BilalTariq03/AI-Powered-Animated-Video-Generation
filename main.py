@@ -186,9 +186,22 @@ def main(prompt: str | None = None, auto: bool = False):
         print("[ERROR] GROQ_API_KEY not set. Create a .env file with: GROQ_API_KEY=your_key_here")
         sys.exit(1)
 
-    # Clear stale images from previous run
-    for f in glob.glob(os.path.join(IMAGES_DIR, "*.png")):
-        os.remove(f)
+    # Clear all stale outputs from previous run so no cached data bleeds into the new story
+    from config import LIPSYNC_DIR, SCENES_DIR, DIALOGUE_DIR, BGM_DIR
+    _clear_patterns = [
+        (IMAGES_DIR,   "*.png"),    # character portraits + scene backgrounds
+        (LIPSYNC_DIR,  "*.mp4"),    # lipsync frames (keyed by segment_id — wrong face otherwise)
+        (SCENES_DIR,   "*.mp4"),    # rendered scene clips
+        (DIALOGUE_DIR, "*.mp3"),    # old dialogue audio (wrong lines if character count changes)
+        (BGM_DIR,      "*.mp3"),    # old BGM tracks
+    ]
+    for directory, pattern in _clear_patterns:
+        if os.path.isdir(directory):
+            for f in glob.glob(os.path.join(directory, pattern)):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
 
     if auto and prompt:
         print(f"[Auto mode] Prompt: {prompt}")

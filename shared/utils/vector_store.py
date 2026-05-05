@@ -35,6 +35,15 @@ class _HashEmbeddingFunction(EmbeddingFunction if _CHROMA_AVAILABLE else object)
     """
     DIM = 128
 
+    def __init__(self):
+        pass
+
+    def name(self) -> str:
+        return "trigram-hash-128"
+
+    def get_config(self) -> dict:
+        return {"dim": self.DIM}
+
     def __call__(self, input: list) -> list:
         results = []
         for text in input:

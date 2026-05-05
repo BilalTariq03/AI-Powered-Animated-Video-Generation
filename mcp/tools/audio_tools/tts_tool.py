@@ -55,7 +55,7 @@ _kokoro_pipelines: dict[str, object] = {}
 def _get_kokoro_pipeline(lang_code: str):
     if lang_code not in _kokoro_pipelines:
         from kokoro import KPipeline
-        _kokoro_pipelines[lang_code] = KPipeline(lang_code=lang_code)
+        _kokoro_pipelines[lang_code] = KPipeline(lang_code=lang_code, repo_id="hexgrad/Kokoro-82M")
     return _kokoro_pipelines[lang_code]
 
 

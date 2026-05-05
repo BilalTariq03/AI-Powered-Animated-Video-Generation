@@ -328,15 +328,32 @@ class TestChangeCharacterDesign:
         hero = next(c for c in data["character_visuals"] if c["name"] == "Hero")
         assert "anime" in hero["image_prompt"]
 
-    def test_deletes_cached_portrait(self, patch_executor, tmp_path):
+    def test_deletes_cached_portrait(self, patch_executor, tmp_path, monkeypatch):
         portrait = tmp_path / "images" / "hero.png"
         portrait.write_text("fake portrait")
+        # Stub regeneration so the portrait is NOT recreated — isolates the delete behaviour
+        monkeypatch.setattr(EditExecutor, "_regenerate_character_image", lambda *_: None)
         EditExecutor().execute({
             "intent": "change_character_design",
             "scope": "character:Hero",
             "parameters": {"description": "sci-fi armor"},
         })
         assert not portrait.exists()
+
+    def test_regenerates_portrait_after_delete(self, patch_executor, monkeypatch):
+        calls = []
+        monkeypatch.setattr(
+            EditExecutor, "_regenerate_character_image",
+            lambda self, name, prompt: calls.append((name, prompt)) or None,
+        )
+        EditExecutor().execute({
+            "intent": "change_character_design",
+            "scope": "character:Hero",
+            "parameters": {"description": "sci-fi armor"},
+        })
+        assert len(calls) == 1
+        assert calls[0][0] == "Hero"
+        assert "sci-fi armor" in calls[0][1]
 
     def test_all_scope_updates_all_characters(self, patch_executor):
         EditExecutor().execute({

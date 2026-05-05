@@ -3,6 +3,7 @@ import PhaseCard      from './components/PhaseCard'
 import VideoPlayer    from './components/VideoPlayer'
 import EditPanel      from './components/EditPanel'
 import VersionHistory from './components/VersionHistory'
+import HITLModal      from './components/HITLModal'
 
 const PHASES = [
   { id: 1, label: 'Story & Script Generation' },
@@ -22,6 +23,7 @@ export default function App() {
   const [versionKey,   setVersionKey]   = useState(0)
   // One-way gate: once true it never goes back to false (avoids EditPanel unmounting)
   const [editUnlocked, setEditUnlocked] = useState(false)
+  const [hitlScript,   setHitlScript]   = useState(null)   // non-null = modal visible
   const esRef = useRef(null)
 
   const handleEvent = useCallback((event) => {
@@ -47,6 +49,14 @@ export default function App() {
           [event.phase]: { ...p[event.phase], status: event.status },
         }))
         if (event.status === 'done') setEditUnlocked(true)
+        break
+
+      case 'hitl_waiting':
+        setHitlScript(event.script)
+        break
+
+      case 'hitl_responded':
+        setHitlScript(null)
         break
 
       case 'done':
@@ -104,11 +114,20 @@ export default function App() {
     return () => esRef.current?.close()
   }, [connectSSE])
 
+  const handleHITLRespond = useCallback((action) => {
+    setHitlScript(null)
+    if (action === 'regenerate') {
+      // Script will regenerate — reset Phase 1 log so user sees fresh output
+      setPhases(p => ({ ...p, 1: { status: 'running', logs: [] } }))
+    }
+  }, [])
+
   const handleStart = async () => {
     if (!prompt.trim() || running) return
     setPhases(blankPhases())
     setHasVideo(false)
     setRunning(true)
+    setHitlScript(null)
     setEditUnlocked(false)
     const res  = await fetch('/api/start', {
       method:  'POST',
@@ -152,6 +171,10 @@ export default function App() {
 
   return (
     <div className="app">
+      {hitlScript && (
+        <HITLModal script={hitlScript} onRespond={handleHITLRespond} />
+      )}
+
       <header className="header">
         <div className="header-inner">
           <h1>AI Story Pipeline</h1>

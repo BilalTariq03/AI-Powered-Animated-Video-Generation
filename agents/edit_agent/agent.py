@@ -24,7 +24,8 @@ class EditIntent(BaseModel):
             "Exact intent name — one of: change_voice_tone, make_scene_darker, "
             "make_scene_lighter, change_scene_mood, add_background_music, "
             "remove_subtitle, add_subtitle, change_character_design, "
-            "speed_up_scene, slow_down_scene, regenerate_script, change_scene_background"
+            "speed_up_scene, slow_down_scene, regenerate_script, change_scene_background, "
+            "add_scene, delete_scene"
         )
     )
     target: Literal["audio", "video_frame", "video", "script"] = Field(
@@ -73,6 +74,8 @@ INTENT NAMES (use exactly):
   slow_down_scene         — make a scene play slower
   regenerate_script       — regenerate the entire story from scratch
   change_scene_background — replace the background image for a scene
+  add_scene               — insert a new scene into the story
+  delete_scene            — remove a scene from the story
 
 TARGET CATEGORIES:
   "audio"       — voice or background music
@@ -83,13 +86,16 @@ TARGET CATEGORIES:
 SCOPE FORMAT (pick the most specific one):
   "character:Name"  — specific character (e.g. "character:Detective Kim")
   "scene:N"         — specific scene number (e.g. "scene:2")
+  "after:N"         — insert after scene N (use with add_scene)
+  "end"             — append at the end (use with add_scene)
   "all"             — applies to everything
 
 PARAMETER KEYS TO EXTRACT:
   tone / voice_style : deep | soft | authoritative | raspy | whispery | high-pitched | neutral
   mood               : dramatic | tense | mysterious | hopeful | melancholic | comedic | romantic | fantasy
   factor             : numeric speed multiplier (e.g. 2.0)
-  description        : free-text image description for visual changes
+  description        : free-text description of what the scene should contain (for add_scene)
+                       or image description for visual changes
   style              : art style descriptor (e.g. "anime", "noir", "watercolor")"""
 
 
